@@ -22,20 +22,40 @@
       "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
 
    function load(){
-  fetch(URL)
-    .then(res => res.json())
-    .then(data => {
+    fetch(URL)
+      .then(res => res.json())
+      .then(data => {
+  
+        document.getElementById("value").innerText =
+          (data.moisture ?? 0) + " %";
+  
+        document.getElementById("dry").innerText =
+          "dry: " + (data.dry ?? 0);
+  
+        document.getElementById("wet").innerText =
+          "wet: " + (data.wet ?? 0);
 
-      document.getElementById("value").innerText =
-        (data.moisture ?? 0) + " %";
+       })
+      .catch(err => {
+        console.log("load error:", err);
+        document.getElementById("value").innerText = "通信エラー";
+      });
+     
+    }
+    
+    function sendMode(mode){
+      fetch("https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/mode.json", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(mode)
+      })
+      .then(res => res.text())
+      .then(t => console.log("mode送信:", t))
+      .catch(err => console.log("mode送信失敗:", err));
+    }
 
-      document.getElementById("dry").innerText =
-        "dry: " + (data.dry ?? 0);
-
-      document.getElementById("wet").innerText =
-        "wet: " + (data.wet ?? 0);
-    });
-}
 
     setInterval(load, 3000);
     load();
