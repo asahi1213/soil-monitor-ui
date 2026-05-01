@@ -135,6 +135,8 @@
     </div>
 
     <div id="status" class="status">状態：--</div>
+    
+    <div id="espStatus" class="status">ESP：確認中</div>
   </div>
 
   <!-- ===== グラフ ===== -->
@@ -212,6 +214,16 @@ function load(){
 
       const moisture = Number(sensor.moisture ?? 0);
       const raw = sensor.raw ?? 0;
+
+      const espStatus = document.getElementById("espStatus");
+
+      if (age < 10000) {
+        espStatus.innerText = "ESP：起動中";
+        espStatus.style.color = "#16a34a";
+      } else {
+        espStatus.innerText = "ESP：未接続";
+        espStatus.style.color = "#dc2626";
+      }
 
       document.getElementById("value").innerText = moisture + " %";
       document.getElementById("raw").innerText = "現在の実測値：" + raw;
