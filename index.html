@@ -58,7 +58,7 @@
       display: flex;
       gap: 12px;
       justify-content: center;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     button {
@@ -94,7 +94,6 @@
       border-bottom: none;
     }
 
-    /* ===== プログレスバー ===== */
     .bar-wrap {
       width: 100%;
       height: 26px;
@@ -125,9 +124,9 @@
   <h1>🌱 Soil Monitor</h1>
   <div class="subtitle">リアルタイム土壌水分モニター</div>
 
-  <!-- ===== 水分 ===== -->
   <div class="card">
     <h3>現在の水分量</h3>
+
     <div id="value" class="value">-- %</div>
 
     <div class="bar-wrap">
@@ -135,23 +134,19 @@
     </div>
 
     <div id="status" class="status">状態：--</div>
-    
+
     <div id="espStatus" class="status">ESP：確認中</div>
   </div>
 
-  <!-- ===== グラフ ===== -->
   <div class="card">
     <h3>水分率グラフ</h3>
     <canvas id="chart"></canvas>
   </div>
 
-  <!-- ===== 操作 ===== -->
   <div class="card">
     <h3>測定モード</h3>
 
-    <div id="raw" class="raw">
-      現在の実測値：--
-    </div>
+    <div id="raw" class="raw">現在の実測値：--</div>
 
     <div class="row">
       <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
@@ -159,13 +154,14 @@
     </div>
   </div>
 
-  <!-- ===== キャリブ ===== -->
   <div class="card">
     <h3>キャリブレーション値</h3>
+
     <div class="calib">
       <span>dry</span>
       <strong id="dry">--</strong>
     </div>
+
     <div class="calib">
       <span>wet</span>
       <strong id="wet">--</strong>
@@ -213,22 +209,12 @@ function load(){
       if (!sensor) return;
 
       const moisture = Number(sensor.moisture ?? 0);
-      const raw = sensor.raw ?? 0;
-
-      const espStatus = document.getElementById("espStatus");
-
-      if (age < 10000) {
-        espStatus.innerText = "ESP：起動中";
-        espStatus.style.color = "#16a34a";
-      } else {
-        espStatus.innerText = "ESP：未接続";
-        espStatus.style.color = "#dc2626";
-      }
+      const raw = sensor.raw ?? "--";
+      const updatedAt = Number(sensor.updatedAt ?? 0);
 
       document.getElementById("value").innerText = moisture + " %";
       document.getElementById("raw").innerText = "現在の実測値：" + raw;
 
-      // ===== バー =====
       const bar = document.getElementById("bar");
       const status = document.getElementById("status");
 
@@ -243,24 +229,44 @@ function load(){
         status.style.color = "#16a34a";
         bar.style.background = "linear-gradient(90deg, #22c55e, #84cc16)";
       } else {
-        status.innerText = "状態：潤いぎみ";
+        status.innerText = "状態：湿潤ぎみ";
         status.style.color = "#2563eb";
         bar.style.background = "linear-gradient(90deg, #38bdf8, #2563eb)";
       }
 
-      // ===== グラフ =====
-      const time = new Date().toLocaleTimeString();
+      const espStatus = document.getElementById("espStatus");
 
-      chart.data.labels.push(time);
-      chart.data.datasets[0].data.push(moisture);
+      let espOnline = false;
 
-      if (chart.data.labels.length > 30) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
+      if (updatedAt > 0) {
+        const age = Date.now() - updatedAt;
+        espOnline = age < 10000;
       }
 
-      chart.update();
-    });
+      if (espOnline) {
+        espStatus.innerText = "ESP：起動中";
+        espStatus.style.color = "#16a34a";
+      } else {
+        espStatus.innerText = "ESP：未接続";
+        espStatus.style.color = "#dc2626";
+      }
+
+      // グラフ更新（オンライン時のみ）
+      if (espOnline && chart) {
+        const time = new Date().toLocaleTimeString();
+
+        chart.data.labels.push(time);
+        chart.data.datasets[0].data.push(moisture);
+
+        if (chart.data.labels.length > 30) {
+          chart.data.labels.shift();
+          chart.data.datasets[0].data.shift();
+        }
+
+        chart.update();
+      }
+    })
+    .catch(err => console.log("sensor error:", err));
 
   fetch(CALIB_URL)
     .then(r => r.json())
@@ -273,9 +279,7 @@ function load(){
 function sendMode(mode){
   fetch(MODE_URL, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(mode)
   });
 }
