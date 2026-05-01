@@ -42,11 +42,6 @@
       margin: 10px 0;
     }
 
-    progress {
-      width: 100%;
-      height: 26px;
-    }
-
     canvas {
       width: 100% !important;
       max-height: 260px;
@@ -56,13 +51,14 @@
       font-size: 18px;
       color: #4b5563;
       margin-top: 10px;
+      margin-bottom: 12px;
     }
 
     .row {
       display: flex;
       gap: 12px;
       justify-content: center;
-      margin-top: 14px;
+      margin-top: 10px;
     }
 
     button {
@@ -97,6 +93,30 @@
     .calib:last-child {
       border-bottom: none;
     }
+
+    /* ===== プログレスバー ===== */
+    .bar-wrap {
+      width: 100%;
+      height: 26px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width 0.4s ease, background 0.4s ease;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
   </style>
 </head>
 
@@ -105,28 +125,39 @@
   <h1>🌱 Soil Monitor</h1>
   <div class="subtitle">リアルタイム土壌水分モニター</div>
 
+  <!-- ===== 水分 ===== -->
   <div class="card">
     <h3>現在の水分量</h3>
     <div id="value" class="value">-- %</div>
-    <progress id="bar" value="0" max="100"></progress>
+
+    <div class="bar-wrap">
+      <div id="bar" class="bar-fill"></div>
+    </div>
+
+    <div id="status" class="status">状態：--</div>
   </div>
 
+  <!-- ===== グラフ ===== -->
   <div class="card">
     <h3>水分率グラフ</h3>
     <canvas id="chart"></canvas>
   </div>
 
+  <!-- ===== 操作 ===== -->
   <div class="card">
     <h3>測定モード</h3>
-    <div id="raw" class="raw" style="margin-top:12px;">
-    現在の実測値: --
+
+    <div id="raw" class="raw">
+      現在の実測値：--
     </div>
+
     <div class="row">
       <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
       <button class="wet" onclick="sendMode('WET')">WET測定</button>
     </div>
   </div>
 
+  <!-- ===== キャリブ ===== -->
   <div class="card">
     <h3>キャリブレーション値</h3>
     <div class="calib">
@@ -166,10 +197,7 @@ function initChart(){
       animation: false,
       responsive: true,
       scales: {
-        y: {
-          min: 0,
-          max: 100
-        }
+        y: { min: 0, max: 100 }
       }
     }
   });
@@ -179,15 +207,36 @@ function load(){
   fetch(SENSOR_URL)
     .then(r => r.json())
     .then(sensor => {
+
       if (!sensor) return;
 
       const moisture = Number(sensor.moisture ?? 0);
       const raw = sensor.raw ?? 0;
 
       document.getElementById("value").innerText = moisture + " %";
-      document.getElementById("bar").value = moisture;
-      document.getElementById("raw").innerText = "現在の実測値： " + raw;
+      document.getElementById("raw").innerText = "現在の実測値：" + raw;
 
+      // ===== バー =====
+      const bar = document.getElementById("bar");
+      const status = document.getElementById("status");
+
+      bar.style.width = moisture + "%";
+
+      if (moisture < 30) {
+        status.innerText = "状態：乾燥ぎみ";
+        status.style.color = "#dc2626";
+        bar.style.background = "linear-gradient(90deg, #ef4444, #f97316)";
+      } else if (moisture < 70) {
+        status.innerText = "状態：適正";
+        status.style.color = "#16a34a";
+        bar.style.background = "linear-gradient(90deg, #22c55e, #84cc16)";
+      } else {
+        status.innerText = "状態：湿潤ぎみ";
+        status.style.color = "#2563eb";
+        bar.style.background = "linear-gradient(90deg, #38bdf8, #2563eb)";
+      }
+
+      // ===== グラフ =====
       const time = new Date().toLocaleTimeString();
 
       chart.data.labels.push(time);
@@ -199,16 +248,14 @@ function load(){
       }
 
       chart.update();
-    })
-    .catch(err => console.log("sensor error:", err));
+    });
 
   fetch(CALIB_URL)
     .then(r => r.json())
     .then(calib => {
       document.getElementById("dry").innerText = calib.dry ?? "--";
       document.getElementById("wet").innerText = calib.wet ?? "--";
-    })
-    .catch(err => console.log("calib error:", err));
+    });
 }
 
 function sendMode(mode){
