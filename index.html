@@ -16,6 +16,17 @@
       text-align: center;
     }
 
+    h1 {
+      font-size: 28px;
+      margin: 10px 0 4px;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
     .card {
       background: white;
       border-radius: 18px;
@@ -28,6 +39,7 @@
       font-size: 56px;
       font-weight: 800;
       color: #2563eb;
+      margin: 10px 0;
     }
 
     .bar-wrap {
@@ -43,7 +55,7 @@
       height: 100%;
       width: 0%;
       border-radius: 999px;
-      transition: 0.4s;
+      transition: width 0.4s ease, background 0.4s ease;
     }
 
     .status {
@@ -52,33 +64,79 @@
       font-weight: 700;
     }
 
+    canvas {
+      width: 100% !important;
+      max-height: 260px;
+    }
+
+    .raw {
+      font-size: 18px;
+      color: #4b5563;
+      margin-top: 10px;
+      margin-bottom: 12px;
+    }
+
     .row {
       display: flex;
-      gap: 10px;
-      margin-top: 10px;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 12px;
     }
 
     button {
       flex: 1;
-      padding: 12px;
-      border-radius: 12px;
+      font-size: 18px;
+      padding: 14px;
+      border-radius: 14px;
       border: none;
-      font-weight: bold;
+      font-weight: 700;
+    }
+
+    .dry {
+      background: #fff7ed;
+      color: #ea580c;
+      border: 1px solid #fdba74;
+    }
+
+    .wet {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #93c5fd;
+    }
+
+    .calib {
+      display: flex;
+      justify-content: space-between;
+      font-size: 20px;
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .calib:last-child {
+      border-bottom: none;
     }
 
     input[type=range] {
       width: 100%;
-      margin-top: 10px;
+      margin-top: 12px;
+    }
+
+    .setting-line {
+      font-size: 20px;
+      margin: 10px 0;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- 水分 -->
+  <h1>🌱 Soil Monitor</h1>
+  <div class="subtitle">リアルタイム土壌水分モニター</div>
+
   <div class="card">
     <h3>現在の水分量</h3>
-    <div id="value" class="value">--%</div>
+
+    <div id="value" class="value">-- %</div>
 
     <div class="bar-wrap">
       <div id="bar" class="bar-fill"></div>
@@ -88,29 +146,41 @@
     <div id="espStatus" class="status">ESP：確認中</div>
   </div>
 
-  <!-- グラフ -->
   <div class="card">
     <h3>水分率グラフ</h3>
     <canvas id="chart"></canvas>
   </div>
 
-  <!-- 測定 -->
   <div class="card">
-    <h3>測定</h3>
-    <div id="raw">現在の実測値：--</div>
+    <h3>測定モード</h3>
+
+    <div id="raw" class="raw">現在の実測値：--</div>
 
     <div class="row">
-      <button onclick="sendMode('DRY')">DRY</button>
-      <button onclick="sendMode('WET')">WET</button>
+      <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
+      <button class="wet" onclick="sendMode('WET')">WET測定</button>
     </div>
   </div>
 
-  <!-- 自動水やり設定 -->
+  <div class="card">
+    <h3>キャリブレーション値</h3>
+
+    <div class="calib">
+      <span>dry</span>
+      <strong id="dry">--</strong>
+    </div>
+
+    <div class="calib">
+      <span>wet</span>
+      <strong id="wet">--</strong>
+    </div>
+  </div>
+
   <div class="card">
     <h3>自動水やり設定</h3>
 
-    <div>
-      水やり開始：<span id="thresholdValue">--</span>%
+    <div class="setting-line">
+      水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
     </div>
 
     <input
@@ -128,12 +198,12 @@
 const BASE = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 const SENSOR_URL = BASE + "/sensor/soil.json";
+const CALIB_URL  = BASE + "/calibration.json";
 const MODE_URL   = BASE + "/mode.json";
 const THRESHOLD_URL = BASE + "/watering/threshold.json";
 
 let chart;
 
-// ===== グラフ =====
 function initChart(){
   const ctx = document.getElementById("chart").getContext("2d");
 
@@ -142,64 +212,74 @@ function initChart(){
     data: {
       labels: [],
       datasets: [{
+        label: "Moisture %",
         data: [],
         borderWidth: 2,
-        tension: 0.3
+        tension: 0.35
       }]
     },
     options: {
       animation: false,
-      scales: { y: { min: 0, max: 100 } }
+      responsive: true,
+      scales: {
+        y: { min: 0, max: 100 }
+      }
     }
   });
 }
 
-// ===== データ取得 =====
 function load(){
-
   fetch(SENSOR_URL)
     .then(r => r.json())
     .then(sensor => {
-
       if (!sensor) return;
 
       const moisture = Number(sensor.moisture ?? 0);
-      const raw = sensor.raw ?? 0;
-      const updatedAt = sensor.updatedAt ?? 0;
+      const raw = sensor.raw ?? "--";
+      const updatedAt = Number(sensor.updatedAt ?? 0);
 
-      document.getElementById("value").innerText = moisture + "%";
+      document.getElementById("value").innerText = moisture + " %";
       document.getElementById("raw").innerText = "現在の実測値：" + raw;
 
-      // バー
       const bar = document.getElementById("bar");
-      bar.style.width = moisture + "%";
-
       const status = document.getElementById("status");
 
+      bar.style.width = moisture + "%";
+
       if (moisture < 30) {
-        status.innerText = "乾燥";
-        bar.style.background = "red";
+        status.innerText = "状態：乾燥ぎみ";
+        status.style.color = "#dc2626";
+        bar.style.background = "linear-gradient(90deg, #ef4444, #f97316)";
       } else if (moisture < 70) {
-        status.innerText = "適正";
-        bar.style.background = "green";
+        status.innerText = "状態：適正";
+        status.style.color = "#16a34a";
+        bar.style.background = "linear-gradient(90deg, #22c55e, #84cc16)";
       } else {
-        status.innerText = "湿潤";
-        bar.style.background = "blue";
+        status.innerText = "状態：湿潤ぎみ";
+        status.style.color = "#2563eb";
+        bar.style.background = "linear-gradient(90deg, #38bdf8, #2563eb)";
       }
 
-      // ESP状態
-      const esp = document.getElementById("espStatus");
-      let online = false;
+      const espStatus = document.getElementById("espStatus");
+      let espOnline = false;
 
-      if (updatedAt) {
-        online = (Date.now() - updatedAt < 10000);
+      if (updatedAt > 0) {
+        const age = Date.now() - updatedAt;
+        espOnline = age < 10000;
       }
 
-      esp.innerText = online ? "ESP：起動中" : "ESP：未接続";
+      if (espOnline) {
+        espStatus.innerText = "ESP：起動中";
+        espStatus.style.color = "#16a34a";
+      } else {
+        espStatus.innerText = "ESP：未接続";
+        espStatus.style.color = "#dc2626";
+      }
 
-      // グラフ
-      if (online) {
-        chart.data.labels.push(new Date().toLocaleTimeString());
+      if (espOnline && chart) {
+        const time = new Date().toLocaleTimeString();
+
+        chart.data.labels.push(time);
         chart.data.datasets[0].data.push(moisture);
 
         if (chart.data.labels.length > 30) {
@@ -209,41 +289,54 @@ function load(){
 
         chart.update();
       }
-    });
+    })
+    .catch(err => console.log("sensor error:", err));
 
-  // threshold取得
+  fetch(CALIB_URL)
+    .then(r => r.json())
+    .then(calib => {
+      if (!calib) return;
+
+      document.getElementById("dry").innerText = calib.dry ?? "--";
+      document.getElementById("wet").innerText = calib.wet ?? "--";
+    })
+    .catch(err => console.log("calib error:", err));
+
   fetch(THRESHOLD_URL)
     .then(r => r.json())
-    .then(th => {
-      if (th == null) return;
-      document.getElementById("thresholdValue").innerText = th;
-      document.getElementById("thresholdInput").value = th;
-    });
+    .then(threshold => {
+      if (threshold == null) return;
+
+      document.getElementById("thresholdValue").innerText = threshold;
+      document.getElementById("thresholdInput").value = threshold;
+    })
+    .catch(err => console.log("threshold error:", err));
 }
 
-// ===== mode =====
 function sendMode(mode){
   fetch(MODE_URL, {
     method: "PUT",
-    headers: {"Content-Type":"application/json"},
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify(mode)
   });
 }
 
-// ===== threshold =====
-function updateThresholdLabel(v){
-  document.getElementById("thresholdValue").innerText = v;
+function updateThresholdLabel(value){
+  document.getElementById("thresholdValue").innerText = value;
 }
 
-function saveThreshold(v){
+function saveThreshold(value){
   fetch(THRESHOLD_URL, {
     method: "PUT",
-    headers: {"Content-Type":"application/json"},
-    body: Number(v)
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: Number(value)
   });
 }
 
-// ===== start =====
 window.onload = () => {
   initChart();
   load();
