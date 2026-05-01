@@ -2,50 +2,150 @@
 <html>
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Soil Monitor</title>
-
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 10px 0 4px;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      margin: 14px 0;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    .value {
+      font-size: 56px;
+      font-weight: 800;
+      color: #2563eb;
+      margin: 10px 0;
+    }
+
+    progress {
+      width: 100%;
+      height: 26px;
+    }
+
+    canvas {
+      width: 100% !important;
+      max-height: 260px;
+    }
+
+    .raw {
+      font-size: 18px;
+      color: #4b5563;
+      margin-top: 10px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    button {
+      flex: 1;
+      font-size: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 700;
+    }
+
+    .dry {
+      background: #fff7ed;
+      color: #ea580c;
+      border: 1px solid #fdba74;
+    }
+
+    .wet {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #93c5fd;
+    }
+
+    .calib {
+      display: flex;
+      justify-content: space-between;
+      font-size: 20px;
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .calib:last-child {
+      border-bottom: none;
+    }
+  </style>
 </head>
 
-<body style="text-align:center; font-size:24px;">
+<body>
 
-  <h2>Soil Monitor</h2>
+  <h1>🌱 Soil Monitor</h1>
+  <div class="subtitle">リアルタイム土壌水分モニター</div>
 
-  <div id="value">-- %</div>
+  <div class="card">
+    <h3>現在の水分量</h3>
+    <div id="value" class="value">-- %</div>
+    <progress id="bar" value="0" max="100"></progress>
+    <div id="raw" class="raw">raw: --</div>
+  </div>
 
-  <progress id="bar" value="0" max="100"
-    style="width:80%; height:30px;"></progress>
+  <div class="card">
+    <h3>水分率グラフ</h3>
+    <canvas id="chart"></canvas>
+  </div>
 
-  <div style="display:flex; justify-content:center; margin:20px 0;">
-  <canvas id="chart" style="width:90%; max-width:600px;"></canvas>
-</div>
+  <div class="card">
+    <h3>測定モード</h3>
+    <div class="row">
+      <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
+      <button class="wet" onclick="sendMode('WET')">WET測定</button>
+    </div>
+  </div>
 
-  <div id="raw">raw: --</div>
-
-  <br>
-
-  <button onclick="sendMode('DRY')">DRY測定</button>
-  <button onclick="sendMode('WET')">WET測定</button>
-
-  <br><br>
-
-  <h3>キャリブレーション</h3>
-  <div id="dry">dry: --</div>
-  <div id="wet">wet: --</div>
+  <div class="card">
+    <h3>キャリブレーション値</h3>
+    <div class="calib">
+      <span>dry</span>
+      <strong id="dry">--</strong>
+    </div>
+    <div class="calib">
+      <span>wet</span>
+      <strong id="wet">--</strong>
+    </div>
+  </div>
 
 <script>
-
 const BASE = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 const SENSOR_URL = BASE + "/sensor/soil.json";
 const CALIB_URL  = BASE + "/calibration.json";
 const MODE_URL   = BASE + "/mode.json";
 
-// ===== Chart =====
 let chart;
 
 function initChart(){
-
   const ctx = document.getElementById("chart").getContext("2d");
 
   chart = new Chart(ctx, {
@@ -56,11 +156,12 @@ function initChart(){
         label: "Moisture %",
         data: [],
         borderWidth: 2,
-        tension: 0.3
+        tension: 0.35
       }]
     },
     options: {
       animation: false,
+      responsive: true,
       scales: {
         y: {
           min: 0,
@@ -69,34 +170,21 @@ function initChart(){
       }
     }
   });
-
-  // 初期データ（安定化）
-  chart.data.labels.push("start");
-  chart.data.datasets[0].data.push(0);
-  chart.update();
 }
 
-// ===== load =====
 function load(){
-
   fetch(SENSOR_URL)
     .then(r => r.json())
     .then(sensor => {
-
       if (!sensor) return;
 
       const moisture = Number(sensor.moisture ?? 0);
+      const raw = sensor.raw ?? 0;
 
-      document.getElementById("value").innerText =
-        moisture + " %";
+      document.getElementById("value").innerText = moisture + " %";
+      document.getElementById("bar").value = moisture;
+      document.getElementById("raw").innerText = "raw: " + raw;
 
-      document.getElementById("bar").value =
-        moisture;
-
-      document.getElementById("raw").innerText =
-        "raw: " + (sensor.raw ?? 0);
-
-      // ===== graph =====
       const time = new Date().toLocaleTimeString();
 
       chart.data.labels.push(time);
@@ -108,29 +196,18 @@ function load(){
       }
 
       chart.update();
-
     })
-    .catch(err => {
-      console.log("sensor error:", err);
-    });
+    .catch(err => console.log("sensor error:", err));
 
-  // ===== calibration =====
   fetch(CALIB_URL)
     .then(r => r.json())
     .then(calib => {
-
-      document.getElementById("dry").innerText =
-        "dry: " + (calib.dry ?? 0);
-
-      document.getElementById("wet").innerText =
-        "wet: " + (calib.wet ?? 0);
+      document.getElementById("dry").innerText = calib.dry ?? "--";
+      document.getElementById("wet").innerText = calib.wet ?? "--";
     })
-    .catch(err => {
-      console.log("calib error:", err);
-    });
+    .catch(err => console.log("calib error:", err));
 }
 
-// ===== mode =====
 function sendMode(mode){
   fetch(MODE_URL, {
     method: "PUT",
@@ -138,18 +215,14 @@ function sendMode(mode){
       "Content-Type": "application/json"
     },
     body: JSON.stringify(mode)
-  })
-  .then(() => console.log("mode:", mode))
-  .catch(err => console.log("mode error:", err));
+  });
 }
 
-// ===== start =====
 window.onload = () => {
   initChart();
   load();
   setInterval(load, 3000);
 };
-
 </script>
 
 </body>
