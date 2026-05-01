@@ -20,53 +20,62 @@
   <div id="wet">wet: --</div>
 
   <script>
-    const URL =
-      "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
+const SENSOR_URL =
+  "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/sensor/soil.json";
+const CALIB_URL =
+  "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/calibration.json";
+const MODE_URL =
+  "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/control/mode.json";
 
-    document.getElementById("bar").value =
-  data.moisture ?? 0;
+function load(){
 
-   function load(){
-      fetch(URL)
-        .then(res => res.json())
-        .then(data => {
-    
-          const sensor = data.sensor ?? {};
-          const calib = data; // dry/wetはそのまま
-    
-          document.getElementById("value").innerText =
-            (sensor.moisture ?? 0) + " %";
-    
-          document.getElementById("dry").innerText =
-            "dry: " + (calib.dry ?? 0);
-    
-          document.getElementById("wet").innerText =
-            "wet: " + (calib.wet ?? 0);
-    
-        })
-        .catch(err => {
-          console.log("load error:", err);
-          document.getElementById("value").innerText = "通信エラー";
-        });
-    }
-    
-    function sendMode(mode){
-      fetch("https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/mode.json", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(mode)
-      })
-      .then(res => res.text())
-      .then(t => console.log("mode送信:", t))
-      .catch(err => console.log("mode送信失敗:", err));
-    }
+  fetch(SENSOR_URL)
+    .then(r => r.json())
+    .then(sensor => {
+
+      document.getElementById("value").innerText =
+        (sensor.moisture ?? 0) + " %";
+
+      document.getElementById("raw").innerText =
+        "raw: " + (sensor.raw ?? 0);
+
+    })
+    .catch(err => {
+      console.log("sensor error:", err);
+      document.getElementById("value").innerText = "通信エラー";
+    });
 
 
-    setInterval(load, 3000);
-    load();
-  </script>
+  fetch(CALIB_URL)
+    .then(r => r.json())
+    .then(calib => {
+
+      document.getElementById("dry").innerText =
+        "dry: " + (calib.dry ?? 0);
+
+      document.getElementById("wet").innerText =
+        "wet: " + (calib.wet ?? 0);
+
+    })
+    .catch(err => {
+      console.log("calib error:", err);
+    });
+
+}
+
+function sendMode(mode){
+  fetch("https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/mode.json", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(mode)
+  });
+}
+
+setInterval(load, 3000);
+load();
+</script>
 
 </body>
 </html>
