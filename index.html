@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
- <body style="text-align:center; font-size:24px;">
+<body style="text-align:center; font-size:24px;">
 
   <h2>Soil Monitor</h2>
+
   <div id="value">-- %</div>
 
   <br><br>
@@ -10,25 +11,33 @@
   <button onclick="sendMode('DRY')">DRY測定</button>
   <button onclick="sendMode('WET')">WET測定</button>
 
+  <br><br>
+
+  <h3>キャリブレーション</h3>
+  <div id="dry">dry: --</div>
+  <div id="wet">wet: --</div>
+
   <script>
-    const url = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/moisture.json";
+    const URL =
+      "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
 
-    function load(){
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById("value").innerText = data + " %";
-        });
-    }
+   function load(){
+  fetch(URL)
+    .then(res => res.json())
+    .then(data => {
 
-    function sendMode(mode){
-      fetch("https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/mode.json", {
-        method: "PUT",
-        body: JSON.stringify(mode)
-      });
-    }
+      document.getElementById("value").innerText =
+        (data.moisture ?? 0) + " %";
 
-    setInterval(load, 2000);
+      document.getElementById("dry").innerText =
+        "dry: " + (data.dry ?? 0);
+
+      document.getElementById("wet").innerText =
+        "wet: " + (data.wet ?? 0);
+    });
+}
+
+    setInterval(load, 3000);
     load();
   </script>
 
