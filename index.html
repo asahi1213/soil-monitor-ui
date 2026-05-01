@@ -1,14 +1,25 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Soil Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
 <body style="text-align:center; font-size:24px;">
 
   <h2>Soil Monitor</h2>
 
   <div id="value">-- %</div>
-  <div id="raw">raw: --</div>
-  <progress id="bar" value="0" max="100" style="width:80%; height:30px;"></progress>
 
-  <br><br>
+  <progress id="bar" value="0" max="100"
+    style="width:80%; height:30px;"></progress>
+
+  <canvas id="chart" style="width:90%; max-width:600px;"></canvas>
+
+  <div id="raw">raw: --</div>
+
+  <br>
 
   <button onclick="sendMode('DRY')">DRY測定</button>
   <button onclick="sendMode('WET')">WET測定</button>
@@ -19,38 +30,79 @@
   <div id="dry">dry: --</div>
   <div id="wet">wet: --</div>
 
-  <script>
-const SENSOR_URL =
-  "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/sensor/soil.json";
-const CALIB_URL =
-  "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/calibration.json";
-const MODE_URL =
-  "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/control/mode.json";
+<script>
 
+const BASE =
+  "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+const SENSOR_URL = BASE + "/sensor/soil.json";
+const CALIB_URL  = BASE + "/calibration.json";
+const MODE_URL   = BASE + "/mode.json";
+
+// ===== Chart =====
+let chart;
+
+function initChart(){
+  const ctx = document.getElementById("chart").getContext("2d");
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Moisture %",
+        data: [],
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    },
+    options: {
+      animation: false,
+      scales: {
+        y: {
+          min: 0,
+          max: 100
+        }
+      }
+    }
+  });
+}
+
+// ===== Load =====
 function load(){
 
+  // ===== sensor =====
   fetch(SENSOR_URL)
-  .then(r => r.json())
-  .then(sensor => {
+    .then(r => r.json())
+    .then(sensor => {
 
-    const moisture = Number(sensor.moisture ?? 0);
-  
-    document.getElementById("value").innerText =
-      moisture + " %";
-  
-    document.getElementById("raw").innerText =
-      "raw: " + (sensor.raw ?? 0);
-  
-    document.getElementById("bar").value =
-      moisture;
-  
-  })
-    .catch(err => {
-      console.log("sensor error:", err);
-      document.getElementById("value").innerText = "通信エラー";
+      const moisture = Number(sensor.moisture ?? 0);
+      const raw = sensor.raw ?? 0;
+
+      document.getElementById("value").innerText =
+        moisture + " %";
+
+      document.getElementById("raw").innerText =
+        "raw: " + raw;
+
+      document.getElementById("bar").value =
+        moisture;
+
+      // ===== graph =====
+      const time = new Date().toLocaleTimeString();
+
+      chart.data.labels.push(time);
+      chart.data.datasets[0].data.push(moisture);
+
+      if (chart.data.labels.length > 30) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+      }
+
+      chart.update();
     });
 
-
+  // ===== calibration =====
   fetch(CALIB_URL)
     .then(r => r.json())
     .then(calib => {
@@ -60,16 +112,12 @@ function load(){
 
       document.getElementById("wet").innerText =
         "wet: " + (calib.wet ?? 0);
-
-    })
-    .catch(err => {
-      console.log("calib error:", err);
     });
-
 }
 
+// ===== mode送信 =====
 function sendMode(mode){
-  fetch("https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/mode.json", {
+  fetch(MODE_URL, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json"
@@ -78,8 +126,11 @@ function sendMode(mode){
   });
 }
 
+// ===== start =====
+initChart();
 setInterval(load, 3000);
 load();
+
 </script>
 
 </body>
