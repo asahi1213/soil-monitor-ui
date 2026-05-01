@@ -1,24 +1,36 @@
 <!DOCTYPE html>
 <html>
-  <body style="text-align:center; font-size:24px;">
+ <body style="text-align:center; font-size:24px;">
 
-    <h2>Soil Monitor</h2>
-    <div id="value">-- %</div>
+  <h2>Soil Monitor</h2>
+  <div id="value">-- %</div>
 
-    <script>
-      const url = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/moisture.json";
+  <br><br>
 
-      function load(){
-        fetch(url)
-          .then(res => res.json())
-          .then(data => {
-            document.getElementById("value").innerText = data + " %";
-          });
-      }
+  <button onclick="sendMode('DRY')">DRY測定</button>
+  <button onclick="sendMode('WET')">WET測定</button>
 
-      setInterval(load, 2000);
-      load();
-    </script>
+  <script>
+    const url = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/moisture.json";
 
-  </body>
+    function load(){
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("value").innerText = data + " %";
+        });
+    }
+
+    function sendMode(mode){
+      fetch("https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/mode.json", {
+        method: "PUT",
+        body: JSON.stringify(mode)
+      });
+    }
+
+    setInterval(load, 2000);
+    load();
+  </script>
+
+</body>
 </html>
