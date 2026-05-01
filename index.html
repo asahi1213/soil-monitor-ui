@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Soil Monitor</title>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -32,8 +33,7 @@
 
 <script>
 
-const BASE =
-  "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app";
+const BASE = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 const SENSOR_URL = BASE + "/sensor/soil.json";
 const CALIB_URL  = BASE + "/calibration.json";
@@ -43,6 +43,7 @@ const MODE_URL   = BASE + "/mode.json";
 let chart;
 
 function initChart(){
+
   const ctx = document.getElementById("chart").getContext("2d");
 
   chart = new Chart(ctx, {
@@ -66,27 +67,32 @@ function initChart(){
       }
     }
   });
+
+  // 初期データ（安定化）
+  chart.data.labels.push("start");
+  chart.data.datasets[0].data.push(0);
+  chart.update();
 }
 
-// ===== Load =====
+// ===== load =====
 function load(){
 
-  // ===== sensor =====
   fetch(SENSOR_URL)
     .then(r => r.json())
     .then(sensor => {
 
+      if (!sensor) return;
+
       const moisture = Number(sensor.moisture ?? 0);
-      const raw = sensor.raw ?? 0;
 
       document.getElementById("value").innerText =
         moisture + " %";
 
-      document.getElementById("raw").innerText =
-        "raw: " + raw;
-
       document.getElementById("bar").value =
         moisture;
+
+      document.getElementById("raw").innerText =
+        "raw: " + (sensor.raw ?? 0);
 
       // ===== graph =====
       const time = new Date().toLocaleTimeString();
@@ -100,6 +106,10 @@ function load(){
       }
 
       chart.update();
+
+    })
+    .catch(err => {
+      console.log("sensor error:", err);
     });
 
   // ===== calibration =====
@@ -112,10 +122,13 @@ function load(){
 
       document.getElementById("wet").innerText =
         "wet: " + (calib.wet ?? 0);
+    })
+    .catch(err => {
+      console.log("calib error:", err);
     });
 }
 
-// ===== mode送信 =====
+// ===== mode =====
 function sendMode(mode){
   fetch(MODE_URL, {
     method: "PUT",
@@ -123,13 +136,17 @@ function sendMode(mode){
       "Content-Type": "application/json"
     },
     body: JSON.stringify(mode)
-  });
+  })
+  .then(() => console.log("mode:", mode))
+  .catch(err => console.log("mode error:", err));
 }
 
 // ===== start =====
-initChart();
-setInterval(load, 3000);
-load();
+window.onload = () => {
+  initChart();
+  load();
+  setInterval(load, 3000);
+};
 
 </script>
 
