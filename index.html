@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <body style="text-align:center; font-size:24px;">
+
+    <h2>Soil Monitor</h2>
+    <div id="value">-- %</div>
+
+    <script>
+      const url = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app/moisture.json";
+
+      function load(){
+        fetch(url)
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("value").innerText = data + " %";
+          });
+      }
+
+      setInterval(load, 2000);
+      load();
+    </script>
+
+  </body>
+</html>
