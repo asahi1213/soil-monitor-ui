@@ -1,692 +1,293 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Soil Monitor</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soil Monitor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    body {
-      margin: 0;
-      padding: 16px;
-      font-family: system-ui, sans-serif;
-      background: #f4f7fb;
-      color: #1f2937;
-      text-align: center;
-    }
-    
-    #autoLabel {
-      font-weight: 700;
-      font-size: 16px;
-      min-width: 40px;
-      text-align: center;
-    }
+<style>
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: system-ui, sans-serif;
+  background: #f4f7fb;
+  text-align: center;
+}
 
-    h1 { font-size: 28px; margin: 10px 0 4px; }
-    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 18px; }
+h1 { font-size: 26px; }
 
-    .card, .soil-card {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
-      margin: 14px 0;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    }
+.card, .soil-card {
+  background: white;
+  border-radius: 18px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
 
-    .soil-card {
-      text-align: left;
-      cursor: pointer;
-    }
+.soil-card { cursor: pointer; text-align: left; }
 
-    .soil-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 22px;
-      font-weight: 700;
-    }
+.bar-wrap {
+  height: 20px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
 
-    .soil-value {
-      color: #2563eb;
-      font-size: 28px;
-      font-weight: 800;
-    }
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  transition: 0.4s;
+}
 
-    .value {
-      font-size: 56px;
-      font-weight: 800;
-      color: #2563eb;
-      margin: 10px 0;
-    }
+.value { font-size: 48px; font-weight: bold; }
 
-    .bar-wrap {
-      width: 100%;
-      height: 26px;
-      background: #e5e7eb;
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
+.status { margin-top: 8px; font-weight: bold; }
 
-    .bar-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: 999px;
-      transition: width 0.4s ease, background 0.4s ease;
-    }
+.setting-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:10px 0;
+}
 
-    .status {
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: 700;
-    }
+.switch {
+  position: relative;
+  width: 50px;
+  height: 26px;
+}
 
-    canvas {
-      width: 100% !important;
-      max-height: 260px;
-    }
+.switch input { display:none; }
 
-    .raw {
-      font-size: 18px;
-      color: #4b5563;
-      margin-top: 10px;
-      margin-bottom: 12px;
-    }
+.slider {
+  position:absolute;
+  background:#ccc;
+  border-radius:999px;
+  top:0; left:0; right:0; bottom:0;
+}
 
-    .row {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      margin-top: 12px;
-    }
+.slider:before {
+  content:"";
+  position:absolute;
+  width:22px;
+  height:22px;
+  background:white;
+  border-radius:50%;
+  left:2px;
+  top:2px;
+  transition:.3s;
+}
 
-    button {
-      flex: 1;
-      font-size: 18px;
-      padding: 14px;
-      border-radius: 14px;
-      border: none;
-      font-weight: 700;
-    }
+input:checked + .slider {
+  background:#22c55e;
+}
 
-    .back {
-      background: #e5e7eb;
-      color: #111827;
-      margin-bottom: 8px;
-    }
+input:checked + .slider:before {
+  transform:translateX(24px);
+}
 
-    .dry {
-      background: #fff7ed;
-      color: #ea580c;
-      border: 1px solid #fdba74;
-    }
-
-    .wet {
-      background: #eff6ff;
-      color: #2563eb;
-      border: 1px solid #93c5fd;
-    }
-
-    .calib {
-      display: flex;
-      justify-content: space-between;
-      font-size: 20px;
-      padding: 10px 0;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .calib:last-child {
-      border-bottom: none;
-    }
-
-    input[type=range] {
-      width: 100%;
-      margin-top: 12px;
-    }
-
-    .setting-line {
-      font-size: 20px;
-      margin: 10px 0;
-    }
-
-    .setting-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 20px;
-      margin: 12px 0;
-    }
-
-    /* トグルスイッチ */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 56px;
-      height: 30px;
-      flex: none;
-    }
-
-    .switch input {
-      display: none;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      background-color: #d1d5db;
-      border-radius: 999px;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      transition: .3s;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 24px;
-      width: 24px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      border-radius: 50%;
-      transition: .3s;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-    }
-
-    input:checked + .slider {
-      background-color: #22c55e;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-
-    .edit-name {
-      font-size: 20px;
-      padding: 4px 8px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-    }
-
-    .mode-tabs {
-      display: flex;
-      gap: 10px;
-      margin: 12px 0;
-    }
-    
-    .mode-tab {
-      flex: 1;
-      padding: 12px;
-      border-radius: 14px;
-      border: 1px solid #d1d5db;
-      background: #f9fafb;
-      font-weight: 700;
-    }
-    
-    .mode-tab.active {
-      background: #2563eb;
-      color: white;
-    }
-    
-    .hidden {
-      display: none;
-    }
-
-    
-  </style>
+</style>
 </head>
 
 <body>
 
-  <h1>🌱 Soil Monitor</h1>
-  <div class="subtitle">3-zone soil monitoring system</div>
+<h1>🌱 Soil Monitor</h1>
 
-  <!-- HOME -->
-  <div id="home">
-    <div class="soil-card" onclick="openDetail('soil1')">
-      <div class="soil-top">
-        <span id="soil1Name">soil1</span>
-        <span id="soil1Value" class="soil-value">-- %</span>
-      </div>
-      <div class="bar-wrap"><div id="soil1Bar" class="bar-fill"></div></div>
-    </div>
+<!-- HOME -->
+<div id="home">
+  <div class="soil-card" onclick="openDetail('soil1')">
+    <h3 id="soil1Name">soil1</h3>
+    <div id="soil1Value">-- %</div>
+    <div class="bar-wrap"><div id="soil1Bar" class="bar-fill"></div></div>
+  </div>
 
-    <div class="soil-card" onclick="openDetail('soil2')">
-      <div class="soil-top">
-        <span id="soil2Name">soil2</span>
-        <span id="soil2Value" class="soil-value">-- %</span>
-      </div>
-      <div class="bar-wrap"><div id="soil2Bar" class="bar-fill"></div></div>
-    </div>
+  <div class="soil-card" onclick="openDetail('soil2')">
+    <h3 id="soil2Name">soil2</h3>
+    <div id="soil2Value">-- %</div>
+    <div class="bar-wrap"><div id="soil2Bar" class="bar-fill"></div></div>
+  </div>
 
-    <div class="soil-card" onclick="openDetail('soil3')">
-      <div class="soil-top">
-        <span id="soil3Name">soil3</span>
-        <span id="soil3Value" class="soil-value">-- %</span>
-      </div>
-      <div class="bar-wrap"><div id="soil3Bar" class="bar-fill"></div></div>
+  <div class="soil-card" onclick="openDetail('soil3')">
+    <h3 id="soil3Name">soil3</h3>
+    <div id="soil3Value">-- %</div>
+    <div class="bar-wrap"><div id="soil3Bar" class="bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div id="detail" style="display:none;">
+
+<button onclick="backHome()">←戻る</button>
+
+<h2 id="detailTitle"></h2>
+
+<div class="card">
+  <div class="value" id="value">-- %</div>
+  <div class="bar-wrap"><div id="bar" class="bar-fill"></div></div>
+  <div id="status">状態：--</div>
+  <div id="espStatus">ESP：--</div>
+</div>
+
+<div class="card">
+  <canvas id="chart"></canvas>
+</div>
+
+<div class="card">
+  <h3>水やり設定</h3>
+
+  <div id="wateringStatus">待機中</div>
+
+  <div class="setting-row">
+    <span>自動水やり</span>
+    <div style="display:flex; gap:10px;">
+      <span id="autoLabel">OFF</span>
+      <label class="switch">
+        <input type="checkbox" id="autoToggle" onchange="toggleAutoSwitch(this)">
+        <span class="slider"></span>
+      </label>
     </div>
   </div>
 
-  <!-- DETAIL -->
-  <div id="detail" style="display:none;">
-
-    <button class="back" onclick="backHome()">← 一覧に戻る</button>
-
-    <h2>
-      <span id="detailTitle">soil1</span>
-      <button class="edit-name" onclick="editZoneName()">✏️</button>
-    </h2>
-
-    <div class="card">
-      <h3>現在の水分量</h3>
-      <div id="value" class="value">-- %</div>
-
-      <div class="bar-wrap">
-        <div id="bar" class="bar-fill"></div>
-      </div>
-
-      <div id="status" class="status">状態：--</div>
-      <div id="espStatus" class="status">ESP：確認中</div>
-    </div>
-
-    <div class="card">
-      <h3>水分率グラフ</h3>
-      <canvas id="chart"></canvas>
-    </div>
-
-    <div class="card">
-      <h3>測定モード</h3>
-      <div id="raw" class="raw">現在の実測値：--</div>
-
-      <div class="row">
-        <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
-        <button class="wet" onclick="sendMode('WET')">WET測定</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>キャリブレーション値</h3>
-
-      <div class="calib">
-        <span>dry</span>
-        <strong id="dry">--</strong>
-      </div>
-
-      <div class="calib">
-        <span>wet</span>
-        <strong id="wet">--</strong>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>水やり設定</h3>
-    
-      <div id="wateringStatus" class="status">水やり：待機中</div>
-    
-      <div class="mode-tabs">
-        <button id="autoTab" class="mode-tab active" onclick="selectWateringMode('auto')">
-          自動
-        </button>
-        <button id="manualTab" class="mode-tab" onclick="selectWateringMode('manual')">
-          手動
-        </button>
-      </div>
-    
-      <!-- 自動モード -->
-      <div id="autoPanel">
-        <div class="setting-line">
-          自動水やり：<strong id="autoLabel">ON</strong>
-        </div>
-    
-        <div class="setting-line">
-          水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
-        </div>
-    
-        <input
-          id="thresholdInput"
-          type="range"
-          min="0"
-          max="100"
-          value="30"
-          oninput="updateThresholdLabel(this.value)"
-          onchange="saveThreshold(this.value)"
-        >
-    
-        <div class="setting-line">
-          水やり時間：<strong><span id="durationValue">--</span>秒</strong>
-        </div>
-    
-        <input
-          id="durationInput"
-          type="range"
-          min="1"
-          max="10"
-          value="3"
-          oninput="updateDurationLabel(this.value)"
-          onchange="saveDuration(this.value)"
-        >
-      </div>
-    
-      <!-- 手動モード -->
-      <div id="manualPanel" class="hidden">
-        <div class="setting-line">
-          手動でポンプを動かします
-        </div>
-    
-        <button class="wet" onclick="manualWatering()">
-          今すぐ水やり
-        </button>
-      </div>
-    </div>
-
+  <div>
+    開始：<span id="thresholdValue">--</span>%
   </div>
+
+  <input id="thresholdInput" type="range" min="0" max="100"
+    oninput="updateThresholdLabel(this.value)"
+    onchange="saveThreshold(this.value)">
+
+  <div>
+    時間：<span id="durationValue">--</span>秒
+  </div>
+
+  <input id="durationInput" type="range" min="1" max="10"
+    oninput="updateDurationLabel(this.value)"
+    onchange="saveDuration(this.value)">
+
+  <br><br>
+
+  <button onclick="manualWatering()">今すぐ水やり</button>
+
+</div>
+
+</div>
 
 <script>
 const BASE = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app";
-
 let currentZone = "soil1";
 let chart;
 
-function setBarColor(bar, moisture){
-  if (moisture < 30) {
-    bar.style.background = "linear-gradient(90deg, #ef4444, #f97316)";
-  } else if (moisture < 70) {
-    bar.style.background = "linear-gradient(90deg, #22c55e, #84cc16)";
-  } else {
-    bar.style.background = "linear-gradient(90deg, #38bdf8, #2563eb)";
-  }
+function setBarColor(bar,v){
+  bar.style.width = v+"%";
 }
 
 function loadHome(){
-  fetch(BASE + "/zones.json")
-    .then(r => r.json())
-    .then(zones => {
-      ["soil1", "soil2", "soil3"].forEach(zone => {
-        const moisture = Number(zones?.[zone]?.sensor?.moisture ?? 0);
-        document.getElementById(zone + "Value").innerText = moisture + " %";
-        
-        const name = zones?.[zone]?.name ?? zone;
-        document.getElementById(zone + "Name").innerText = name;
-        
-        const bar = document.getElementById(zone + "Bar");
-        bar.style.width = moisture + "%";
-        setBarColor(bar, moisture);
-      });
-    })
-    
-    .catch(err => console.log("home error:", err));
+  fetch(BASE+"/zones.json")
+  .then(r=>r.json())
+  .then(z=>{
+    ["soil1","soil2","soil3"].forEach(s=>{
+      const m = z?.[s]?.sensor?.moisture ?? 0;
+      document.getElementById(s+"Value").innerText = m+"%";
+      setBarColor(document.getElementById(s+"Bar"),m);
+
+      document.getElementById(s+"Name").innerText =
+        z?.[s]?.name ?? s;
+    });
+  });
 }
 
-function openDetail(zone){
-  currentZone = zone;
-
-  document.getElementById("home").style.display = "none";
-  document.getElementById("detail").style.display = "block";
-  document.getElementById("detailTitle").innerText = zone;
-
-  resetChart();
+function openDetail(z){
+  currentZone=z;
+  document.getElementById("home").style.display="none";
+  document.getElementById("detail").style.display="block";
   loadDetail();
 }
 
 function backHome(){
-  document.getElementById("detail").style.display = "none";
-  document.getElementById("home").style.display = "block";
-  loadHome();
-}
-
-function initChart(){
-  const ctx = document.getElementById("chart").getContext("2d");
-
-  chart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: [],
-      datasets: [{
-        label: "Moisture %",
-        data: [],
-        borderWidth: 2,
-        tension: 0.35
-      }]
-    },
-    options: {
-      animation: false,
-      responsive: true,
-      scales: {
-        y: { min: 0, max: 100 }
-      }
-    }
-  });
-}
-
-function resetChart(){
-  if (!chart) return;
-  chart.data.labels = [];
-  chart.data.datasets[0].data = [];
-  chart.update();
+  document.getElementById("detail").style.display="none";
+  document.getElementById("home").style.display="block";
 }
 
 function loadDetail(){
-  const ZONE_URL = BASE + "/zones/" + currentZone + ".json";
+  fetch(BASE+"/zones/"+currentZone+".json")
+  .then(r=>r.json())
+  .then(d=>{
+    if(!d)return;
 
-  fetch(ZONE_URL)
-    .then(r => r.json())
-    .then(data => {
-      if (!data) return;
+    const s=d.sensor??{};
+    const w=d.watering??{};
 
-      const sensor = data.sensor ?? {};
-      const calib = data.calibration ?? {};
-      const watering = data.watering ?? {};
+    const m=s.moisture??0;
 
-      const auto = watering.auto ?? false;
-      const running = watering.running ?? false;
-      
-      const zoneName = data.name ?? currentZone;
-      document.getElementById("detailTitle").innerText = zoneName;
+    document.getElementById("value").innerText=m+"%";
+    setBarColor(document.getElementById("bar"),m);
 
-      const moisture = Number(sensor.moisture ?? 0);
-      const raw = sensor.raw ?? "--";
-      const updatedAt = Number(sensor.updatedAt ?? 0);
+    document.getElementById("detailTitle").innerText=d.name??currentZone;
 
-      document.getElementById("value").innerText = moisture + " %";
-      document.getElementById("raw").innerText = "現在の実測値：" + raw;
+    const auto=w.auto??false;
+    const running=w.running??false;
 
-      const bar = document.getElementById("bar");
-      const status = document.getElementById("status");
+    document.getElementById("autoToggle").checked=auto;
+    document.getElementById("autoLabel").innerText=auto?"ON":"OFF";
 
-      bar.style.width = moisture + "%";
-      setBarColor(bar, moisture);
+    document.getElementById("wateringStatus").innerText=
+      running?"💧水やり中":"待機中";
 
-      if (moisture < 30) {
-        status.innerText = "状態：乾燥ぎみ";
-        status.style.color = "#dc2626";
-      } else if (moisture < 70) {
-        status.innerText = "状態：適正";
-        status.style.color = "#16a34a";
-      } else {
-        status.innerText = "状態：湿潤ぎみ";
-        status.style.color = "#2563eb";
-      }
+    const dur=Math.floor((w.duration??3000)/1000);
+    document.getElementById("durationValue").innerText=dur;
+    document.getElementById("durationInput").value=dur;
 
-      const espStatus = document.getElementById("espStatus");
-      let espOnline = false;
-
-      if (updatedAt > 0) {
-        espOnline = Date.now() - updatedAt < 10000;
-      }
-
-      if (espOnline) {
-        espStatus.innerText = "ESP：起動中";
-        espStatus.style.color = "#16a34a";
-      } else {
-        espStatus.innerText = "ESP：未接続";
-        espStatus.style.color = "#dc2626";
-      }
-
-      document.getElementById("dry").innerText = calib.dry ?? "--";
-      document.getElementById("wet").innerText = calib.wet ?? "--";
-
-
-      document.getElementById("autoLabel").innerText = auto ? "ON" : "OFF";
-      document.getElementById("autoLabel").style.color = auto ? "#16a34a" : "#dc2626";
-      
-      if (auto) {
-        document.getElementById("autoTab").classList.add("active");
-        document.getElementById("manualTab").classList.remove("active");
-        document.getElementById("autoPanel").classList.remove("hidden");
-        document.getElementById("manualPanel").classList.add("hidden");
-      } else {
-        document.getElementById("autoTab").classList.remove("active");
-        document.getElementById("manualTab").classList.add("active");
-        document.getElementById("autoPanel").classList.add("hidden");
-        document.getElementById("manualPanel").classList.remove("hidden");
-      }
-      
-      const wateringStatus = document.getElementById("wateringStatus");
-      
-      if (running) {
-        wateringStatus.innerText = "💧 水やり中…";
-        wateringStatus.style.color = "#2563eb";
-      } else {
-        wateringStatus.innerText = "水やり：待機中";
-        wateringStatus.style.color = "#6b7280";
-      }
-
-      const label = document.getElementById("autoLabel");
-      label.innerText = auto ? "ON" : "OFF";
-      label.style.color = auto ? "#16a34a" : "#dc2626";
-
-      const durationMs = watering.duration ?? 3000;
-      const durationSec = Math.floor(durationMs / 1000);
-
-      document.getElementById("durationValue").innerText = durationSec;
-      document.getElementById("durationInput").value = durationSec;
-
-      document.getElementById("thresholdValue").innerText =
-        watering.threshold ?? "--";
-
-      document.getElementById("thresholdInput").value =
-        watering.threshold ?? 30;
-
-      if (espOnline && chart) {
-        const time = new Date().toLocaleTimeString();
-
-        chart.data.labels.push(time);
-        chart.data.datasets[0].data.push(moisture);
-
-        if (chart.data.labels.length > 30) {
-          chart.data.labels.shift();
-          chart.data.datasets[0].data.shift();
-        }
-
-        chart.update();
-      }
-    })
-    .catch(err => console.log("detail error:", err));
-}
-
-function sendMode(mode){
-  fetch(BASE + "/zones/" + currentZone + "/mode.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(mode)
-  });
-}
-
-function updateThresholdLabel(value){
-  document.getElementById("thresholdValue").innerText = value;
-}
-
-function saveThreshold(value){
-  fetch(BASE + "/zones/" + currentZone + "/watering/threshold.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: Number(value)
-  });
-}
-
-function updateDurationLabel(value){
-  document.getElementById("durationValue").innerText = value;
-}
-
-function saveDuration(value){
-  fetch(BASE + "/zones/" + currentZone + "/watering/duration.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: Number(value) * 1000
-  });
-}
-
-function selectWateringMode(mode){
-  const isAuto = mode === "auto";
-
-  document.getElementById("autoTab").classList.toggle("active", isAuto);
-  document.getElementById("manualTab").classList.toggle("active", !isAuto);
-
-  document.getElementById("autoPanel").classList.toggle("hidden", !isAuto);
-  document.getElementById("manualPanel").classList.toggle("hidden", isAuto);
-
-  fetch(BASE + "/zones/" + currentZone + "/watering/auto.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(isAuto)
-  });
-}
-
-function manualWatering(){
-  fetch(BASE + "/zones/" + currentZone + "/watering/manual.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(true)
+    document.getElementById("thresholdValue").innerText=w.threshold??30;
+    document.getElementById("thresholdInput").value=w.threshold??30;
   });
 }
 
 function toggleAutoSwitch(el){
-  const value = el.checked;
-
-  fetch(BASE + "/zones/" + currentZone + "/watering/auto.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(value)
-  });
-
-  const label = document.getElementById("autoLabel");
-  label.innerText = value ? "ON" : "OFF";
-  label.style.color = value ? "#16a34a" : "#dc2626";
-}
-
-function editZoneName(){
-  const currentName = document.getElementById("detailTitle").innerText;
-  const newName = prompt("名前を入力してください", currentName);
-
-  if (!newName) return;
-
-  fetch(BASE + "/zones/" + currentZone + "/name.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newName)
-  })
-  .then(() => {
-    document.getElementById("detailTitle").innerText = newName;
-    loadHome();
+  fetch(BASE+"/zones/"+currentZone+"/watering/auto.json",{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(el.checked)
   });
 }
 
-window.onload = () => {
-  initChart();
+function manualWatering(){
+  fetch(BASE+"/zones/"+currentZone+"/watering/manual.json",{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:"true"
+  });
+}
 
+function updateThresholdLabel(v){
+  document.getElementById("thresholdValue").innerText=v;
+}
+function saveThreshold(v){
+  fetch(BASE+"/zones/"+currentZone+"/watering/threshold.json",{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:Number(v)
+  });
+}
+
+function updateDurationLabel(v){
+  document.getElementById("durationValue").innerText=v;
+}
+function saveDuration(v){
+  fetch(BASE+"/zones/"+currentZone+"/watering/duration.json",{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:Number(v)*1000
+  });
+}
+
+window.onload=()=>{
   loadHome();
-  setInterval(loadHome, 3000);
-
-  setInterval(() => {
-    if (document.getElementById("detail").style.display === "block") {
+  setInterval(loadHome,3000);
+  setInterval(()=>{
+    if(document.getElementById("detail").style.display==="block"){
       loadDetail();
     }
-  }, 3000);
+  },3000);
 };
 </script>
 
