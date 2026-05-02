@@ -482,15 +482,8 @@ function loadDetail(){
       const calib = data.calibration ?? {};
       const watering = data.watering ?? {};
 
-      const wateringStatus = document.getElementById("wateringStatus");
-      
-      if (running) {
-        wateringStatus.innerText = "💧 水やり中…";
-        wateringStatus.style.color = "#2563eb";
-      } else {
-        wateringStatus.innerText = "水やり：待機中";
-        wateringStatus.style.color = "#6b7280";
-      }
+      const auto = watering.auto ?? false;
+      const running = watering.running ?? false;
       
       const zoneName = data.name ?? currentZone;
       document.getElementById("detailTitle").innerText = zoneName;
@@ -537,8 +530,6 @@ function loadDetail(){
       document.getElementById("dry").innerText = calib.dry ?? "--";
       document.getElementById("wet").innerText = calib.wet ?? "--";
 
-      const auto = watering.auto ?? false;
-      const running = watering.running ?? false;
 
       document.getElementById("autoLabel").innerText = auto ? "ON" : "OFF";
       document.getElementById("autoLabel").style.color = auto ? "#16a34a" : "#dc2626";
@@ -572,7 +563,6 @@ function loadDetail(){
       const durationMs = watering.duration ?? 3000;
       const durationSec = Math.floor(durationMs / 1000);
 
-      document.getElementById("autoToggle").checked = auto;
       document.getElementById("durationValue").innerText = durationSec;
       document.getElementById("durationInput").value = durationSec;
 
