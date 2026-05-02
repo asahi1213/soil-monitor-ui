@@ -540,12 +540,8 @@ function loadDetail(){
       document.getElementById("wet").innerText = calib.wet ?? "--";
 
       const auto = watering.auto ?? false;
-
-      document.getElementById("autoToggle").checked = auto;
-
-      const auto = watering.auto ?? false;
       const running = watering.running ?? false;
-      
+
       document.getElementById("autoLabel").innerText = auto ? "ON" : "OFF";
       document.getElementById("autoLabel").style.color = auto ? "#16a34a" : "#dc2626";
       
