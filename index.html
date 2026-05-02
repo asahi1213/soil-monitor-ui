@@ -297,6 +297,23 @@
     </div>
 
     <div class="card">
+      <h3>水やり設定</h3>
+
+      <div id="wateringStatus" class="status">水やり：待機中</div>
+
+      <div class="setting-row">
+        <span>自動水やり</span>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span id="autoLabel">OFF</span>
+
+          <label class="switch">
+            <input type="checkbox" id="autoToggle" onchange="toggleAutoSwitch(this)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+    <div class="card">
       <h3>測定モード</h3>
 
       <div id="raw" class="raw">現在の実測値：--</div>
@@ -320,23 +337,6 @@
         <strong id="wet">--</strong>
       </div>
     </div>
-
-    <div class="card">
-      <h3>水やり設定</h3>
-
-      <div id="wateringStatus" class="status">水やり：待機中</div>
-
-      <div class="setting-row">
-        <span>自動水やり</span>
-
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span id="autoLabel">OFF</span>
-
-          <label class="switch">
-            <input type="checkbox" id="autoToggle" onchange="toggleAutoSwitch(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
       </div>
 
       <div class="setting-line">
@@ -436,12 +436,21 @@ function initChart(){
     type: "line",
     data: {
       labels: [],
-      datasets: [{
-        label: "Moisture %",
-        data: [],
-        borderWidth: 2,
-        tension: 0.35
-      }]
+    　datasets: [
+        {
+          label: "Moisture %",
+          data: [],
+          borderWidth: 2,
+          tension: 0.35
+        },
+        {
+          label: "水やり開始ライン",
+          data: [],
+          borderWidth: 2,
+          borderDash: [6, 6],
+          pointRadius: 0
+        }
+      ]
     },
     options: {
       animation: false,
@@ -461,6 +470,7 @@ function resetChart(){
 
   chart.data.labels = [];
   chart.data.datasets[0].data = [];
+  chart.data.datasets[1].data = [];
   chart.update();
 }
 
@@ -555,13 +565,19 @@ function loadDetail(){
       if (espOnline && chart) {
         const time = new Date().toLocaleTimeString();
 
-        chart.data.labels.push(time);
-        chart.data.datasets[0].data.push(moisture);
+      const threshold = Number(watering.threshold ?? 30);
 
-        if (chart.data.labels.length > 30) {
-          chart.data.labels.shift();
-          chart.data.datasets[0].data.shift();
-        }
+      chart.data.labels.push(time);
+      chart.data.datasets[0].data.push(moisture);
+      chart.data.datasets[1].data.push(threshold);
+      
+      if (chart.data.labels.length > 30) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+        chart.data.datasets[1].data.shift();
+      }
+
+chart.update();
 
         chart.update();
       }
