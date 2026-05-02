@@ -482,8 +482,6 @@ function loadDetail(){
       const calib = data.calibration ?? {};
       const watering = data.watering ?? {};
 
-      const running = watering.running ?? false;
-
       const wateringStatus = document.getElementById("wateringStatus");
       
       if (running) {
