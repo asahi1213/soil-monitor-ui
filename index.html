@@ -243,11 +243,19 @@
 
     <div class="card">
       <h3>自動水やり設定</h3>
-
+    
+      <div class="setting-line">
+        自動水やり：<strong id="autoValue">--</strong>
+      </div>
+    
+      <button id="autoButton" onclick="toggleAutoWatering()">
+        切り替え
+      </button>
+    
       <div class="setting-line">
         水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
       </div>
-
+    
       <input
         id="thresholdInput"
         type="range"
@@ -256,6 +264,20 @@
         value="30"
         oninput="updateThresholdLabel(this.value)"
         onchange="saveThreshold(this.value)"
+      >
+    
+      <div class="setting-line">
+        水やり時間：<strong><span id="durationValue">--</span>秒</strong>
+      </div>
+    
+      <input
+        id="durationInput"
+        type="range"
+        min="1"
+        max="10"
+        value="3"
+        oninput="updateDurationLabel(this.value)"
+        onchange="saveDuration(this.value)"
       >
     </div>
 
@@ -400,6 +422,18 @@ function loadDetail(){
       document.getElementById("dry").innerText = calib.dry ?? "--";
       document.getElementById("wet").innerText = calib.wet ?? "--";
 
+
+      
+      const auto = watering.auto ?? false;
+      const durationMs = watering.duration ?? 3000;
+      const durationSec = Math.floor(durationMs / 1000);
+      
+      document.getElementById("autoValue").innerText = auto ? "ON" : "OFF";
+      document.getElementById("autoValue").style.color = auto ? "#16a34a" : "#dc2626";
+      
+      document.getElementById("durationValue").innerText = durationSec;
+      document.getElementById("durationInput").value = durationSec;
+
       document.getElementById("thresholdValue").innerText =
         watering.threshold ?? "--";
 
@@ -441,6 +475,28 @@ function saveThreshold(value){
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: Number(value)
+  });
+}
+  function updateDurationLabel(value){
+  document.getElementById("durationValue").innerText = value;
+}
+
+function saveDuration(value){
+  fetch(BASE + "/zones/" + currentZone + "/watering/duration.json", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: Number(value) * 1000
+  });
+}
+
+function toggleAutoWatering(){
+  const currentText = document.getElementById("autoValue").innerText;
+  const next = currentText === "ON" ? false : true;
+
+  fetch(BASE + "/zones/" + currentZone + "/watering/auto.json", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(next)
   });
 }
 
