@@ -212,6 +212,30 @@
       cursor: pointer;
     }
 
+    .mode-tabs {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    
+    .mode-tab {
+      flex: 1;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      font-weight: 700;
+    }
+    
+    .mode-tab.active {
+      background: #2563eb;
+      color: white;
+    }
+    
+    .hidden {
+      display: none;
+    }
+
     
   </style>
 </head>
@@ -300,49 +324,64 @@
     </div>
 
     <div class="card">
-      <h3>自動水やり設定</h3>
+      <h3>水やり設定</h3>
+    
       <div id="wateringStatus" class="status">水やり：待機中</div>
-
-     <div class="setting-row">
-      <span>自動水やり</span>
     
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span id="autoLabel">OFF</span>
+      <div class="mode-tabs">
+        <button id="autoTab" class="mode-tab active" onclick="selectWateringMode('auto')">
+          自動
+        </button>
+        <button id="manualTab" class="mode-tab" onclick="selectWateringMode('manual')">
+          手動
+        </button>
+      </div>
     
-        <label class="switch">
-          <input type="checkbox" id="autoToggle" onchange="toggleAutoSwitch(this)">
-          <span class="slider"></span>
-        </label>
+      <!-- 自動モード -->
+      <div id="autoPanel">
+        <div class="setting-line">
+          自動水やり：<strong id="autoLabel">ON</strong>
+        </div>
+    
+        <div class="setting-line">
+          水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
+        </div>
+    
+        <input
+          id="thresholdInput"
+          type="range"
+          min="0"
+          max="100"
+          value="30"
+          oninput="updateThresholdLabel(this.value)"
+          onchange="saveThreshold(this.value)"
+        >
+    
+        <div class="setting-line">
+          水やり時間：<strong><span id="durationValue">--</span>秒</strong>
+        </div>
+    
+        <input
+          id="durationInput"
+          type="range"
+          min="1"
+          max="10"
+          value="3"
+          oninput="updateDurationLabel(this.value)"
+          onchange="saveDuration(this.value)"
+        >
       </div>
-    </div>
-      
-      <div class="setting-line">
-        水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
+    
+      <!-- 手動モード -->
+      <div id="manualPanel" class="hidden">
+        <div class="setting-line">
+          手動でポンプを動かします
+        </div>
+    
+        <button class="wet" onclick="manualWatering()">
+          今すぐ水やり
+        </button>
       </div>
-
-      <input
-        id="thresholdInput"
-        type="range"
-        min="0"
-        max="100"
-        value="30"
-        oninput="updateThresholdLabel(this.value)"
-        onchange="saveThreshold(this.value)"
-      >
-
-      <div class="setting-line">
-        水やり時間：<strong><span id="durationValue">--</span>秒</strong>
-      </div>
-
-      <input
-        id="durationInput"
-        type="range"
-        min="1"
-        max="10"
-        value="3"
-        oninput="updateDurationLabel(this.value)"
-        onchange="saveDuration(this.value)"
-      >
     </div>
 
   </div>
@@ -504,6 +543,34 @@ function loadDetail(){
 
       document.getElementById("autoToggle").checked = auto;
 
+      const auto = watering.auto ?? false;
+      const running = watering.running ?? false;
+      
+      document.getElementById("autoLabel").innerText = auto ? "ON" : "OFF";
+      document.getElementById("autoLabel").style.color = auto ? "#16a34a" : "#dc2626";
+      
+      if (auto) {
+        document.getElementById("autoTab").classList.add("active");
+        document.getElementById("manualTab").classList.remove("active");
+        document.getElementById("autoPanel").classList.remove("hidden");
+        document.getElementById("manualPanel").classList.add("hidden");
+      } else {
+        document.getElementById("autoTab").classList.remove("active");
+        document.getElementById("manualTab").classList.add("active");
+        document.getElementById("autoPanel").classList.add("hidden");
+        document.getElementById("manualPanel").classList.remove("hidden");
+      }
+      
+      const wateringStatus = document.getElementById("wateringStatus");
+      
+      if (running) {
+        wateringStatus.innerText = "💧 水やり中…";
+        wateringStatus.style.color = "#2563eb";
+      } else {
+        wateringStatus.innerText = "水やり：待機中";
+        wateringStatus.style.color = "#6b7280";
+      }
+
       const label = document.getElementById("autoLabel");
       label.innerText = auto ? "ON" : "OFF";
       label.style.color = auto ? "#16a34a" : "#dc2626";
@@ -567,6 +634,30 @@ function saveDuration(value){
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: Number(value) * 1000
+  });
+}
+
+function selectWateringMode(mode){
+  const isAuto = mode === "auto";
+
+  document.getElementById("autoTab").classList.toggle("active", isAuto);
+  document.getElementById("manualTab").classList.toggle("active", !isAuto);
+
+  document.getElementById("autoPanel").classList.toggle("hidden", !isAuto);
+  document.getElementById("manualPanel").classList.toggle("hidden", isAuto);
+
+  fetch(BASE + "/zones/" + currentZone + "/watering/auto.json", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(isAuto)
+  });
+}
+
+function manualWatering(){
+  fetch(BASE + "/zones/" + currentZone + "/watering/manual.json", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(true)
   });
 }
 
