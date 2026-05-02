@@ -27,12 +27,31 @@
       margin-bottom: 18px;
     }
 
-    .card {
+    .card, .soil-card {
       background: white;
       border-radius: 18px;
       padding: 18px;
       margin: 14px 0;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    .soil-card {
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .soil-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .soil-value {
+      color: #2563eb;
+      font-size: 28px;
+      font-weight: 800;
     }
 
     .value {
@@ -92,6 +111,12 @@
       font-weight: 700;
     }
 
+    .back {
+      background: #e5e7eb;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
     .dry {
       background: #fff7ed;
       color: #ea580c;
@@ -131,92 +156,163 @@
 <body>
 
   <h1>🌱 Soil Monitor</h1>
-  <div class="subtitle">リアルタイム土壌水分モニター</div>
+  <div class="subtitle">3-zone soil monitoring system</div>
 
-  <div class="card">
-    <h3>現在の水分量</h3>
-
-    <div id="value" class="value">-- %</div>
-
-    <div class="bar-wrap">
-      <div id="bar" class="bar-fill"></div>
+  <!-- ===== HOME ===== -->
+  <div id="home">
+    <div class="soil-card" onclick="openDetail('soil1')">
+      <div class="soil-top">
+        <span>soil1</span>
+        <span id="soil1Value" class="soil-value">-- %</span>
+      </div>
+      <div class="bar-wrap">
+        <div id="soil1Bar" class="bar-fill"></div>
+      </div>
     </div>
 
-    <div id="status" class="status">状態：--</div>
-    <div id="espStatus" class="status">ESP：確認中</div>
-  </div>
-
-  <div class="card">
-    <h3>水分率グラフ</h3>
-    <canvas id="chart"></canvas>
-  </div>
-
-  <div class="card">
-    <h3>測定モード</h3>
-
-    <div id="raw" class="raw">現在の実測値：--</div>
-
-    <div class="row">
-      <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
-      <button class="wet" onclick="sendMode('WET')">WET測定</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>キャリブレーション値</h3>
-
-    <div class="calib">
-      <span>dry</span>
-      <strong id="dry">--</strong>
+    <div class="soil-card" onclick="openDetail('soil2')">
+      <div class="soil-top">
+        <span>soil2</span>
+        <span id="soil2Value" class="soil-value">-- %</span>
+      </div>
+      <div class="bar-wrap">
+        <div id="soil2Bar" class="bar-fill"></div>
+      </div>
     </div>
 
-    <div class="calib">
-      <span>wet</span>
-      <strong id="wet">--</strong>
+    <div class="soil-card" onclick="openDetail('soil3')">
+      <div class="soil-top">
+        <span>soil3</span>
+        <span id="soil3Value" class="soil-value">-- %</span>
+      </div>
+      <div class="bar-wrap">
+        <div id="soil3Bar" class="bar-fill"></div>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <h3>自動水やり設定</h3>
+  <!-- ===== DETAIL ===== -->
+  <div id="detail" style="display:none;">
 
-    <div class="setting-line">
-      水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
+    <button class="back" onclick="backHome()">← 一覧に戻る</button>
+
+    <h2 id="detailTitle">soil1</h2>
+
+    <div class="card">
+      <h3>現在の水分量</h3>
+
+      <div id="value" class="value">-- %</div>
+
+      <div class="bar-wrap">
+        <div id="bar" class="bar-fill"></div>
+      </div>
+
+      <div id="status" class="status">状態：--</div>
+      <div id="espStatus" class="status">ESP：確認中</div>
     </div>
 
-    <input
-      id="thresholdInput"
-      type="range"
-      min="0"
-      max="100"
-      value="30"
-      oninput="updateThresholdLabel(this.value)"
-      onchange="saveThreshold(this.value)"
-    >
-    <div class="setting-line">
-      水やり時間：<strong><span id="durationValue">--</span>秒</strong>
+    <div class="card">
+      <h3>水分率グラフ</h3>
+      <canvas id="chart"></canvas>
     </div>
-    
-    <input
-      id="durationInput"
-      type="range"
-      min="1"
-      max="10"
-      value="3"
-      oninput="updateDurationLabel(this.value)"
-      onchange="saveDuration(this.value)"
-    >
+
+    <div class="card">
+      <h3>測定モード</h3>
+
+      <div id="raw" class="raw">現在の実測値：--</div>
+
+      <div class="row">
+        <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
+        <button class="wet" onclick="sendMode('WET')">WET測定</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>キャリブレーション値</h3>
+
+      <div class="calib">
+        <span>dry</span>
+        <strong id="dry">--</strong>
+      </div>
+
+      <div class="calib">
+        <span>wet</span>
+        <strong id="wet">--</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>自動水やり設定</h3>
+
+      <div class="setting-line">
+        水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
+      </div>
+
+      <input
+        id="thresholdInput"
+        type="range"
+        min="0"
+        max="100"
+        value="30"
+        oninput="updateThresholdLabel(this.value)"
+        onchange="saveThreshold(this.value)"
+      >
+    </div>
+
   </div>
 
 <script>
 const BASE = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-const SENSOR_URL = BASE + "/sensor/soil.json";
-const CALIB_URL  = BASE + "/calibration.json";
-const MODE_URL   = BASE + "/mode.json";
-const THRESHOLD_URL = BASE + "/watering/threshold.json";
-const DURATION_URL = BASE + "/watering/duration.json";
-
+let currentZone = "soil1";
 let chart;
+
+// ===== 色設定 =====
+function setBarColor(bar, moisture){
+  if (moisture < 30) {
+    bar.style.background = "linear-gradient(90deg, #ef4444, #f97316)";
+  } else if (moisture < 70) {
+    bar.style.background = "linear-gradient(90deg, #22c55e, #84cc16)";
+  } else {
+    bar.style.background = "linear-gradient(90deg, #38bdf8, #2563eb)";
+  }
+}
+
+// ===== HOME =====
+function loadHome(){
+  fetch(BASE + "/zones.json")
+    .then(r => r.json())
+    .then(zones => {
+      ["soil1", "soil2", "soil3"].forEach(zone => {
+        const moisture = Number(zones?.[zone]?.sensor?.moisture ?? 0);
+
+        document.getElementById(zone + "Value").innerText = moisture + " %";
+
+        const bar = document.getElementById(zone + "Bar");
+        bar.style.width = moisture + "%";
+        setBarColor(bar, moisture);
+      });
+    })
+    .catch(err => console.log("home error:", err));
+}
+
+// ===== DETAIL =====
+function openDetail(zone){
+  currentZone = zone;
+
+  document.getElementById("home").style.display = "none";
+  document.getElementById("detail").style.display = "block";
+  document.getElementById("detailTitle").innerText = zone;
+
+  resetChart();
+  loadDetail();
+}
+
+function backHome(){
+  document.getElementById("detail").style.display = "none";
+  document.getElementById("home").style.display = "block";
+  loadHome();
+}
 
 function initChart(){
   const ctx = document.getElementById("chart").getContext("2d");
@@ -241,23 +337,26 @@ function initChart(){
     }
   });
 }
-function updateDurationLabel(v){
-  document.getElementById("durationValue").innerText = v;
+
+function resetChart(){
+  if (!chart) return;
+
+  chart.data.labels = [];
+  chart.data.datasets[0].data = [];
+  chart.update();
 }
 
-function saveDuration(v){
-  fetch(DURATION_URL, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: Number(v) * 1000   // 秒 → ms
-  });
-}
+function loadDetail(){
+  const ZONE_URL = BASE + "/zones/" + currentZone + ".json";
 
-function load(){
-  fetch(SENSOR_URL)
+  fetch(ZONE_URL)
     .then(r => r.json())
-    .then(sensor => {
-      if (!sensor) return;
+    .then(data => {
+      if (!data) return;
+
+      const sensor = data.sensor ?? {};
+      const calib = data.calibration ?? {};
+      const watering = data.watering ?? {};
 
       const moisture = Number(sensor.moisture ?? 0);
       const raw = sensor.raw ?? "--";
@@ -270,27 +369,24 @@ function load(){
       const status = document.getElementById("status");
 
       bar.style.width = moisture + "%";
+      setBarColor(bar, moisture);
 
       if (moisture < 30) {
         status.innerText = "状態：乾燥ぎみ";
         status.style.color = "#dc2626";
-        bar.style.background = "linear-gradient(90deg, #ef4444, #f97316)";
       } else if (moisture < 70) {
         status.innerText = "状態：適正";
         status.style.color = "#16a34a";
-        bar.style.background = "linear-gradient(90deg, #22c55e, #84cc16)";
       } else {
         status.innerText = "状態：湿潤ぎみ";
         status.style.color = "#2563eb";
-        bar.style.background = "linear-gradient(90deg, #38bdf8, #2563eb)";
       }
 
       const espStatus = document.getElementById("espStatus");
       let espOnline = false;
 
       if (updatedAt > 0) {
-        const age = Date.now() - updatedAt;
-        espOnline = age < 10000;
+        espOnline = Date.now() - updatedAt < 10000;
       }
 
       if (espOnline) {
@@ -300,6 +396,15 @@ function load(){
         espStatus.innerText = "ESP：未接続";
         espStatus.style.color = "#dc2626";
       }
+
+      document.getElementById("dry").innerText = calib.dry ?? "--";
+      document.getElementById("wet").innerText = calib.wet ?? "--";
+
+      document.getElementById("thresholdValue").innerText =
+        watering.threshold ?? "--";
+
+      document.getElementById("thresholdInput").value =
+        watering.threshold ?? 30;
 
       if (espOnline && chart) {
         const time = new Date().toLocaleTimeString();
@@ -315,46 +420,14 @@ function load(){
         chart.update();
       }
     })
-    .catch(err => console.log("sensor error:", err));
-
-  fetch(CALIB_URL)
-    .then(r => r.json())
-    .then(calib => {
-      if (!calib) return;
-
-      document.getElementById("dry").innerText = calib.dry ?? "--";
-      document.getElementById("wet").innerText = calib.wet ?? "--";
-    })
-    .catch(err => console.log("calib error:", err));
-
-  fetch(THRESHOLD_URL)
-    .then(r => r.json())
-    .then(threshold => {
-      if (threshold == null) return;
-
-      document.getElementById("thresholdValue").innerText = threshold;
-      document.getElementById("thresholdInput").value = threshold;
-    })
-    .catch(err => console.log("threshold error:", err));
+    .catch(err => console.log("detail error:", err));
 }
 
-  fetch(DURATION_URL)
-    .then(r => r.json())
-    .then(d => {
-      if (d == null) return;
-  
-      const sec = Math.floor(d / 1000);
-  
-      document.getElementById("durationValue").innerText = sec;
-      document.getElementById("durationInput").value = sec;
-    });
-
+// ===== 操作 =====
 function sendMode(mode){
-  fetch(MODE_URL, {
+  fetch(BASE + "/zones/" + currentZone + "/mode.json", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(mode)
   });
 }
@@ -364,19 +437,25 @@ function updateThresholdLabel(value){
 }
 
 function saveThreshold(value){
-  fetch(THRESHOLD_URL, {
+  fetch(BASE + "/zones/" + currentZone + "/watering/threshold.json", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: Number(value)
   });
 }
 
+// ===== start =====
 window.onload = () => {
   initChart();
-  load();
-  setInterval(load, 3000);
+
+  loadHome();
+  setInterval(loadHome, 3000);
+
+  setInterval(() => {
+    if (document.getElementById("detail").style.display === "block") {
+      loadDetail();
+    }
+  }, 3000);
 };
 </script>
 
