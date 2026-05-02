@@ -301,6 +301,7 @@
 
     <div class="card">
       <h3>自動水やり設定</h3>
+      <div id="wateringStatus" class="status">水やり：待機中</div>
 
      <div class="setting-row">
       <span>自動水やり</span>
@@ -441,6 +442,18 @@ function loadDetail(){
       const sensor = data.sensor ?? {};
       const calib = data.calibration ?? {};
       const watering = data.watering ?? {};
+
+      const running = watering.running ?? false;
+
+      const wateringStatus = document.getElementById("wateringStatus");
+      
+      if (running) {
+        wateringStatus.innerText = "💧 水やり中…";
+        wateringStatus.style.color = "#2563eb";
+      } else {
+        wateringStatus.innerText = "水やり：待機中";
+        wateringStatus.style.color = "#6b7280";
+      }
       
       const zoneName = data.name ?? currentZone;
       document.getElementById("detailTitle").innerText = zoneName;
