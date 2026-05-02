@@ -16,16 +16,8 @@
       text-align: center;
     }
 
-    h1 {
-      font-size: 28px;
-      margin: 10px 0 4px;
-    }
-
-    .subtitle {
-      color: #6b7280;
-      font-size: 14px;
-      margin-bottom: 18px;
-    }
+    h1 { font-size: 28px; margin: 10px 0 4px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 18px; }
 
     .card, .soil-card {
       background: white;
@@ -150,6 +142,60 @@
       font-size: 20px;
       margin: 10px 0;
     }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 20px;
+      margin: 12px 0;
+    }
+
+    /* トグルスイッチ */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 56px;
+      height: 30px;
+      flex: none;
+    }
+
+    .switch input {
+      display: none;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      background-color: #d1d5db;
+      border-radius: 999px;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transition: .3s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 24px;
+      width: 24px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+    }
+
+    input:checked + .slider {
+      background-color: #22c55e;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
   </style>
 </head>
 
@@ -158,16 +204,14 @@
   <h1>🌱 Soil Monitor</h1>
   <div class="subtitle">3-zone soil monitoring system</div>
 
-  <!-- ===== HOME ===== -->
+  <!-- HOME -->
   <div id="home">
     <div class="soil-card" onclick="openDetail('soil1')">
       <div class="soil-top">
         <span>soil1</span>
         <span id="soil1Value" class="soil-value">-- %</span>
       </div>
-      <div class="bar-wrap">
-        <div id="soil1Bar" class="bar-fill"></div>
-      </div>
+      <div class="bar-wrap"><div id="soil1Bar" class="bar-fill"></div></div>
     </div>
 
     <div class="soil-card" onclick="openDetail('soil2')">
@@ -175,9 +219,7 @@
         <span>soil2</span>
         <span id="soil2Value" class="soil-value">-- %</span>
       </div>
-      <div class="bar-wrap">
-        <div id="soil2Bar" class="bar-fill"></div>
-      </div>
+      <div class="bar-wrap"><div id="soil2Bar" class="bar-fill"></div></div>
     </div>
 
     <div class="soil-card" onclick="openDetail('soil3')">
@@ -185,13 +227,11 @@
         <span>soil3</span>
         <span id="soil3Value" class="soil-value">-- %</span>
       </div>
-      <div class="bar-wrap">
-        <div id="soil3Bar" class="bar-fill"></div>
-      </div>
+      <div class="bar-wrap"><div id="soil3Bar" class="bar-fill"></div></div>
     </div>
   </div>
 
-  <!-- ===== DETAIL ===== -->
+  <!-- DETAIL -->
   <div id="detail" style="display:none;">
 
     <button class="back" onclick="backHome()">← 一覧に戻る</button>
@@ -200,7 +240,6 @@
 
     <div class="card">
       <h3>現在の水分量</h3>
-
       <div id="value" class="value">-- %</div>
 
       <div class="bar-wrap">
@@ -218,7 +257,6 @@
 
     <div class="card">
       <h3>測定モード</h3>
-
       <div id="raw" class="raw">現在の実測値：--</div>
 
       <div class="row">
@@ -243,19 +281,19 @@
 
     <div class="card">
       <h3>自動水やり設定</h3>
-    
-      <div class="setting-line">
-        自動水やり：<strong id="autoValue">--</strong>
+
+      <div class="setting-row">
+        <span>自動水やり</span>
+        <label class="switch">
+          <input type="checkbox" id="autoToggle" onchange="toggleAutoSwitch(this)">
+          <span class="slider"></span>
+        </label>
       </div>
-    
-      <button id="autoButton" onclick="toggleAutoWatering()">
-        切り替え
-      </button>
-    
+
       <div class="setting-line">
         水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
       </div>
-    
+
       <input
         id="thresholdInput"
         type="range"
@@ -265,11 +303,11 @@
         oninput="updateThresholdLabel(this.value)"
         onchange="saveThreshold(this.value)"
       >
-    
+
       <div class="setting-line">
         水やり時間：<strong><span id="durationValue">--</span>秒</strong>
       </div>
-    
+
       <input
         id="durationInput"
         type="range"
@@ -289,7 +327,6 @@ const BASE = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebaseda
 let currentZone = "soil1";
 let chart;
 
-// ===== 色設定 =====
 function setBarColor(bar, moisture){
   if (moisture < 30) {
     bar.style.background = "linear-gradient(90deg, #ef4444, #f97316)";
@@ -300,7 +337,6 @@ function setBarColor(bar, moisture){
   }
 }
 
-// ===== HOME =====
 function loadHome(){
   fetch(BASE + "/zones.json")
     .then(r => r.json())
@@ -318,7 +354,6 @@ function loadHome(){
     .catch(err => console.log("home error:", err));
 }
 
-// ===== DETAIL =====
 function openDetail(zone){
   currentZone = zone;
 
@@ -362,7 +397,6 @@ function initChart(){
 
 function resetChart(){
   if (!chart) return;
-
   chart.data.labels = [];
   chart.data.datasets[0].data = [];
   chart.update();
@@ -422,15 +456,11 @@ function loadDetail(){
       document.getElementById("dry").innerText = calib.dry ?? "--";
       document.getElementById("wet").innerText = calib.wet ?? "--";
 
-
-      
       const auto = watering.auto ?? false;
       const durationMs = watering.duration ?? 3000;
       const durationSec = Math.floor(durationMs / 1000);
-      
-      document.getElementById("autoValue").innerText = auto ? "ON" : "OFF";
-      document.getElementById("autoValue").style.color = auto ? "#16a34a" : "#dc2626";
-      
+
+      document.getElementById("autoToggle").checked = auto;
       document.getElementById("durationValue").innerText = durationSec;
       document.getElementById("durationInput").value = durationSec;
 
@@ -457,7 +487,6 @@ function loadDetail(){
     .catch(err => console.log("detail error:", err));
 }
 
-// ===== 操作 =====
 function sendMode(mode){
   fetch(BASE + "/zones/" + currentZone + "/mode.json", {
     method: "PUT",
@@ -477,7 +506,8 @@ function saveThreshold(value){
     body: Number(value)
   });
 }
-  function updateDurationLabel(value){
+
+function updateDurationLabel(value){
   document.getElementById("durationValue").innerText = value;
 }
 
@@ -489,18 +519,16 @@ function saveDuration(value){
   });
 }
 
-function toggleAutoWatering(){
-  const currentText = document.getElementById("autoValue").innerText;
-  const next = currentText === "ON" ? false : true;
+function toggleAutoSwitch(el){
+  const value = el.checked;
 
   fetch(BASE + "/zones/" + currentZone + "/watering/auto.json", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(next)
+    body: JSON.stringify(value)
   });
 }
 
-// ===== start =====
 window.onload = () => {
   initChart();
 
