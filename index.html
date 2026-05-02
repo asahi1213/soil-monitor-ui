@@ -15,6 +15,13 @@
       color: #1f2937;
       text-align: center;
     }
+    
+    #autoLabel {
+      font-weight: 700;
+      font-size: 16px;
+      min-width: 40px;
+      text-align: center;
+    }
 
     h1 { font-size: 28px; margin: 10px 0 4px; }
     .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 18px; }
@@ -282,14 +289,19 @@
     <div class="card">
       <h3>自動水やり設定</h3>
 
-      <div class="setting-row">
-        <span>自動水やり</span>
+     <div class="setting-row">
+      <span>自動水やり</span>
+    
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="autoLabel">OFF</span>
+    
         <label class="switch">
           <input type="checkbox" id="autoToggle" onchange="toggleAutoSwitch(this)">
           <span class="slider"></span>
         </label>
       </div>
-
+    </div>
+      
       <div class="setting-line">
         水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
       </div>
@@ -457,6 +469,13 @@ function loadDetail(){
       document.getElementById("wet").innerText = calib.wet ?? "--";
 
       const auto = watering.auto ?? false;
+
+      document.getElementById("autoToggle").checked = auto;
+
+      const label = document.getElementById("autoLabel");
+      label.innerText = auto ? "ON" : "OFF";
+      label.style.color = auto ? "#16a34a" : "#dc2626";
+
       const durationMs = watering.duration ?? 3000;
       const durationSec = Math.floor(durationMs / 1000);
 
@@ -527,6 +546,10 @@ function toggleAutoSwitch(el){
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(value)
   });
+
+  const label = document.getElementById("autoLabel");
+  label.innerText = value ? "ON" : "OFF";
+  label.style.color = value ? "#16a34a" : "#dc2626";
 }
 
 window.onload = () => {
