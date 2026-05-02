@@ -192,6 +192,19 @@
       oninput="updateThresholdLabel(this.value)"
       onchange="saveThreshold(this.value)"
     >
+    <div class="setting-line">
+      水やり時間：<strong><span id="durationValue">--</span>秒</strong>
+    </div>
+    
+    <input
+      id="durationInput"
+      type="range"
+      min="1"
+      max="10"
+      value="3"
+      oninput="updateDurationLabel(this.value)"
+      onchange="saveDuration(this.value)"
+    >
   </div>
 
 <script>
@@ -201,6 +214,7 @@ const SENSOR_URL = BASE + "/sensor/soil.json";
 const CALIB_URL  = BASE + "/calibration.json";
 const MODE_URL   = BASE + "/mode.json";
 const THRESHOLD_URL = BASE + "/watering/threshold.json";
+const DURATION_URL = BASE + "/watering/duration.json";
 
 let chart;
 
@@ -225,6 +239,17 @@ function initChart(){
         y: { min: 0, max: 100 }
       }
     }
+  });
+}
+function updateDurationLabel(v){
+  document.getElementById("durationValue").innerText = v;
+}
+
+function saveDuration(v){
+  fetch(DURATION_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: Number(v) * 1000   // 秒 → ms
   });
 }
 
@@ -312,6 +337,17 @@ function load(){
     })
     .catch(err => console.log("threshold error:", err));
 }
+
+  fetch(DURATION_URL)
+    .then(r => r.json())
+    .then(d => {
+      if (d == null) return;
+  
+      const sec = Math.floor(d / 1000);
+  
+      document.getElementById("durationValue").innerText = sec;
+      document.getElementById("durationInput").value = sec;
+    });
 
 function sendMode(mode){
   fetch(MODE_URL, {
