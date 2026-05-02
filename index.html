@@ -203,6 +203,16 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
+
+    .edit-name {
+      font-size: 20px;
+      padding: 4px 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    
   </style>
 </head>
 
@@ -215,7 +225,7 @@
   <div id="home">
     <div class="soil-card" onclick="openDetail('soil1')">
       <div class="soil-top">
-        <span>soil1</span>
+        <span id="soil1Name">soil1</span>
         <span id="soil1Value" class="soil-value">-- %</span>
       </div>
       <div class="bar-wrap"><div id="soil1Bar" class="bar-fill"></div></div>
@@ -223,7 +233,7 @@
 
     <div class="soil-card" onclick="openDetail('soil2')">
       <div class="soil-top">
-        <span>soil2</span>
+        <span id="soil2Name">soil2</span>
         <span id="soil2Value" class="soil-value">-- %</span>
       </div>
       <div class="bar-wrap"><div id="soil2Bar" class="bar-fill"></div></div>
@@ -231,7 +241,7 @@
 
     <div class="soil-card" onclick="openDetail('soil3')">
       <div class="soil-top">
-        <span>soil3</span>
+        <span id="soil3Name">soil3</span>
         <span id="soil3Value" class="soil-value">-- %</span>
       </div>
       <div class="bar-wrap"><div id="soil3Bar" class="bar-fill"></div></div>
@@ -243,7 +253,10 @@
 
     <button class="back" onclick="backHome()">← 一覧に戻る</button>
 
-    <h2 id="detailTitle">soil1</h2>
+    <h2>
+      <span id="detailTitle">soil1</span>
+      <button class="edit-name" onclick="editZoneName()">✏️</button>
+    </h2>
 
     <div class="card">
       <h3>現在の水分量</h3>
@@ -355,14 +368,17 @@ function loadHome(){
     .then(zones => {
       ["soil1", "soil2", "soil3"].forEach(zone => {
         const moisture = Number(zones?.[zone]?.sensor?.moisture ?? 0);
-
         document.getElementById(zone + "Value").innerText = moisture + " %";
-
+        
+        const name = zones?.[zone]?.name ?? zone;
+        document.getElementById(zone + "Name").innerText = name;
+        
         const bar = document.getElementById(zone + "Bar");
         bar.style.width = moisture + "%";
         setBarColor(bar, moisture);
       });
     })
+    
     .catch(err => console.log("home error:", err));
 }
 
@@ -425,6 +441,9 @@ function loadDetail(){
       const sensor = data.sensor ?? {};
       const calib = data.calibration ?? {};
       const watering = data.watering ?? {};
+      
+      const zoneName = data.name ?? currentZone;
+      document.getElementById("detailTitle").innerText = zoneName;
 
       const moisture = Number(sensor.moisture ?? 0);
       const raw = sensor.raw ?? "--";
@@ -550,6 +569,23 @@ function toggleAutoSwitch(el){
   const label = document.getElementById("autoLabel");
   label.innerText = value ? "ON" : "OFF";
   label.style.color = value ? "#16a34a" : "#dc2626";
+}
+
+function editZoneName(){
+  const currentName = document.getElementById("detailTitle").innerText;
+  const newName = prompt("名前を入力してください", currentName);
+
+  if (!newName) return;
+
+  fetch(BASE + "/zones/" + currentZone + "/name.json", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newName)
+  })
+  .then(() => {
+    document.getElementById("detailTitle").innerText = newName;
+    loadHome();
+  });
 }
 
 window.onload = () => {
