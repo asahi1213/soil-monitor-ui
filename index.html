@@ -313,35 +313,8 @@
           </label>
         </div>
         </div>
-      </div>
 
-    <div class="card">
-      <h3>測定モード</h3>
-
-      <div id="raw" class="raw">現在の実測値：--</div>
-
-      <div class="row">
-        <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
-        <button class="wet" onclick="sendMode('WET')">WET測定</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>キャリブレーション値</h3>
-
-      <div class="calib">
-        <span>dry</span>
-        <strong id="dry">--</strong>
-      </div>
-
-      <div class="calib">
-        <span>wet</span>
-        <strong id="wet">--</strong>
-      </div>
-    </div>
-      
-
-      <div class="setting-line">
+       <div class="setting-line">
         水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
       </div>
 
@@ -372,6 +345,32 @@
       <button class="manual" onclick="manualWatering()">今すぐ水やり</button>
     </div>
 
+      </div>
+
+    <div class="card">
+      <h3>測定モード</h3>
+
+      <div id="raw" class="raw">現在の実測値：--</div>
+
+      <div class="row">
+        <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
+        <button class="wet" onclick="sendMode('WET')">WET測定</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>キャリブレーション値</h3>
+
+      <div class="calib">
+        <span>dry</span>
+        <strong id="dry">--</strong>
+      </div>
+
+      <div class="calib">
+        <span>wet</span>
+        <strong id="wet">--</strong>
+      </div>
+    </div>
   </div>
 
 <script>
