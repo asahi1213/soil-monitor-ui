@@ -137,6 +137,30 @@
       margin-top: 12px;
     }
 
+    .logout {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .login-button {
+      background: #2563eb;
+      color: white;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .login-input {
+      width: 90%;
+      padding: 12px;
+      font-size: 16px;
+      margin: 8px 0;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+    }
+
     .calib {
       display: flex;
       justify-content: space-between;
@@ -235,148 +259,259 @@
   <h1>🌱 Soil Monitor</h1>
   <div class="subtitle">3-zone soil monitoring system</div>
 
-  <!-- HOME -->
-  <div id="home">
-    <div class="soil-card" onclick="openDetail('soil1')">
-      <div class="soil-top">
-        <span id="soil1Name">soil1</span>
-        <span id="soil1Value" class="soil-value">-- %</span>
-      </div>
-      <div class="bar-wrap">
-        <div id="soil1Bar" class="bar-fill"></div>
-      </div>
-    </div>
+  <!-- LOGIN -->
+  <div id="loginCard" class="card">
+    <h3>ログイン</h3>
 
-    <div class="soil-card" onclick="openDetail('soil2')">
-      <div class="soil-top">
-        <span id="soil2Name">soil2</span>
-        <span id="soil2Value" class="soil-value">-- %</span>
-      </div>
-      <div class="bar-wrap">
-        <div id="soil2Bar" class="bar-fill"></div>
-      </div>
-    </div>
+    <input
+      id="emailInput"
+      class="login-input"
+      type="email"
+      placeholder="メールアドレス"
+    >
 
-    <div class="soil-card" onclick="openDetail('soil3')">
-      <div class="soil-top">
-        <span id="soil3Name">soil3</span>
-        <span id="soil3Value" class="soil-value">-- %</span>
-      </div>
-      <div class="bar-wrap">
-        <div id="soil3Bar" class="bar-fill"></div>
-      </div>
-    </div>
+    <input
+      id="passwordInput"
+      class="login-input"
+      type="password"
+      placeholder="パスワード"
+    >
+
+    <button class="login-button" onclick="login()">ログイン</button>
+
+    <div id="loginMessage" style="margin-top:10px; color:#dc2626;"></div>
   </div>
 
-  <!-- DETAIL -->
-  <div id="detail" style="display:none;">
+  <!-- APP -->
+  <div id="appArea" style="display:none;">
 
-    <button class="back" onclick="backHome()">← 一覧に戻る</button>
-
-    <h2>
-      <span id="detailTitle">soil1</span>
-      <button class="edit-name" onclick="editZoneName()">✏️</button>
-    </h2>
-
-    <div class="card">
-      <h3>現在の水分量</h3>
-
-      <div id="value" class="value">-- %</div>
-
-      <div class="bar-wrap">
-        <div id="bar" class="bar-fill"></div>
-      </div>
-
-      <div id="status" class="status">状態：--</div>
-      <div id="espStatus" class="status">ESP：確認中</div>
-    </div>
-
-    <div class="card">
-      <h3>水分率グラフ</h3>
-      <canvas id="chart"></canvas>
-    </div>
-
-    <div class="card">
-      <h3>水やり設定</h3>
-
-      <div id="wateringStatus" class="status">水やり：待機中</div>
-
-      <div class="setting-row">
-        <span>自動水やり</span>
-
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span id="autoLabel">OFF</span>
-
-          <label class="switch">
-            <input type="checkbox" id="autoToggle" onchange="toggleAutoSwitch(this)">
-            <span class="slider"></span>
-          </label>
+    <!-- HOME -->
+    <div id="home">
+      <div class="soil-card" onclick="openDetail('soil1')">
+        <div class="soil-top">
+          <span id="soil1Name">soil1</span>
+          <span id="soil1Value" class="soil-value">-- %</span>
         </div>
+        <div class="bar-wrap">
+          <div id="soil1Bar" class="bar-fill"></div>
+        </div>
+      </div>
+
+      <div class="soil-card" onclick="openDetail('soil2')">
+        <div class="soil-top">
+          <span id="soil2Name">soil2</span>
+          <span id="soil2Value" class="soil-value">-- %</span>
+        </div>
+        <div class="bar-wrap">
+          <div id="soil2Bar" class="bar-fill"></div>
+        </div>
+      </div>
+
+      <div class="soil-card" onclick="openDetail('soil3')">
+        <div class="soil-top">
+          <span id="soil3Name">soil3</span>
+          <span id="soil3Value" class="soil-value">-- %</span>
+        </div>
+        <div class="bar-wrap">
+          <div id="soil3Bar" class="bar-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL -->
+    <div id="detail" style="display:none;">
+
+      <button class="back" onclick="backHome()">← 一覧に戻る</button>
+
+      <h2>
+        <span id="detailTitle">soil1</span>
+        <button class="edit-name" onclick="editZoneName()">✏️</button>
+      </h2>
+
+      <div class="card">
+        <h3>現在の水分量</h3>
+
+        <div id="value" class="value">-- %</div>
+
+        <div class="bar-wrap">
+          <div id="bar" class="bar-fill"></div>
         </div>
 
-       <div class="setting-line">
-        水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
+        <div id="status" class="status">状態：--</div>
+        <div id="espStatus" class="status">ESP：確認中</div>
       </div>
 
-      <input
-        id="thresholdInput"
-        type="range"
-        min="0"
-        max="100"
-        value="30"
-        oninput="updateThresholdLabel(this.value)"
-        onchange="saveThreshold(this.value)"
-      >
-
-      <div class="setting-line">
-        水やり時間：<strong><span id="durationValue">--</span>秒</strong>
+      <div class="card">
+        <h3>水分率グラフ</h3>
+        <canvas id="chart"></canvas>
       </div>
 
-      <input
-        id="durationInput"
-        type="range"
-        min="1"
-        max="10"
-        value="3"
-        oninput="updateDurationLabel(this.value)"
-        onchange="saveDuration(this.value)"
-      >
+      <div class="card">
+        <h3>水やり設定</h3>
 
-      <button class="manual" onclick="manualWatering()">今すぐ水やり</button>
+        <div id="wateringStatus" class="status">水やり：待機中</div>
+
+        <div class="setting-row">
+          <span>自動水やり</span>
+
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span id="autoLabel">OFF</span>
+
+            <label class="switch">
+              <input type="checkbox" id="autoToggle" onchange="toggleAutoSwitch(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-line">
+          水やり開始：<strong><span id="thresholdValue">--</span>% 以下</strong>
+        </div>
+
+        <input
+          id="thresholdInput"
+          type="range"
+          min="0"
+          max="100"
+          value="30"
+          oninput="updateThresholdLabel(this.value)"
+          onchange="saveThreshold(this.value)"
+        >
+
+        <div class="setting-line">
+          水やり時間：<strong><span id="durationValue">--</span>秒</strong>
+        </div>
+
+        <input
+          id="durationInput"
+          type="range"
+          min="1"
+          max="10"
+          value="3"
+          oninput="updateDurationLabel(this.value)"
+          onchange="saveDuration(this.value)"
+        >
+
+        <button class="manual" onclick="manualWatering()">今すぐ水やり</button>
+      </div>
+
+      <div class="card">
+        <h3>測定モード</h3>
+
+        <div id="raw" class="raw">現在の実測値：--</div>
+
+        <div class="row">
+          <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
+          <button class="wet" onclick="sendMode('WET')">WET測定</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>キャリブレーション値</h3>
+
+        <div class="calib">
+          <span>dry</span>
+          <strong id="dry">--</strong>
+        </div>
+
+        <div class="calib">
+          <span>wet</span>
+          <strong id="wet">--</strong>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h3>測定モード</h3>
+    <button class="logout" onclick="logout()">ログアウト</button>
 
-      <div id="raw" class="raw">現在の実測値：--</div>
-
-      <div class="row">
-        <button class="dry" onclick="sendMode('DRY')">DRY測定</button>
-        <button class="wet" onclick="sendMode('WET')">WET測定</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>キャリブレーション値</h3>
-
-      <div class="calib">
-        <span>dry</span>
-        <strong id="dry">--</strong>
-      </div>
-
-      <div class="calib">
-        <span>wet</span>
-        <strong id="wet">--</strong>
-      </div>
-    </div>
   </div>
 
-<script>
-const BASE = "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+/*
+  Firebase Console の Webアプリ設定からコピーして置き換える
+*/
+const firebaseConfig = {
+  apiKey: "ここにapiKey",
+  authDomain: "ここにauthDomain",
+  databaseURL: "https://soil-monitor-ff0f3-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ここにprojectId",
+  storageBucket: "ここにstorageBucket",
+  messagingSenderId: "ここにmessagingSenderId",
+  appId: "ここにappId"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const BASE = firebaseConfig.databaseURL;
 
 let currentZone = "soil1";
 let chart;
+let homeTimer = null;
+let detailTimer = null;
+let chartReady = false;
 
+// ===== Auth付きRealtime Database REST =====
+async function authUrl(path){
+  const user = auth.currentUser;
+  if (!user) throw new Error("not logged in");
+
+  const token = await user.getIdToken();
+
+  return BASE + path + "?auth=" + encodeURIComponent(token);
+}
+
+async function dbGet(path){
+  const url = await authUrl(path);
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error("GET failed: " + path);
+  }
+
+  return await res.json();
+}
+
+async function dbPut(path, value){
+  const url = await authUrl(path);
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(value)
+  });
+
+  if (!res.ok) {
+    throw new Error("PUT failed: " + path);
+  }
+}
+
+// ===== Login =====
+window.login = function(){
+  const email = document.getElementById("emailInput").value;
+  const password = document.getElementById("passwordInput").value;
+
+  document.getElementById("loginMessage").innerText = "";
+
+  signInWithEmailAndPassword(auth, email, password)
+    .catch(err => {
+      document.getElementById("loginMessage").innerText =
+        "ログイン失敗：" + err.message;
+    });
+};
+
+window.logout = function(){
+  signOut(auth);
+};
+
+// ===== UI =====
 function setBarColor(bar, moisture){
   if (!bar) return;
 
@@ -391,22 +526,23 @@ function setBarColor(bar, moisture){
   }
 }
 
-function loadHome(){
-  fetch(BASE + "/zones.json")
-    .then(r => r.json())
-    .then(zones => {
-      ["soil1", "soil2", "soil3"].forEach(zone => {
-        const moisture = Number(zones?.[zone]?.sensor?.moisture ?? 0);
-        const name = zones?.[zone]?.name ?? zone;
+async function loadHome(){
+  try {
+    const zones = await dbGet("/zones.json");
 
-        document.getElementById(zone + "Name").innerText = name;
-        document.getElementById(zone + "Value").innerText = moisture + " %";
+    ["soil1", "soil2", "soil3"].forEach(zone => {
+      const moisture = Number(zones?.[zone]?.sensor?.moisture ?? 0);
+      const name = zones?.[zone]?.name ?? zone;
 
-        const bar = document.getElementById(zone + "Bar");
-        setBarColor(bar, moisture);
-      });
-    })
-    .catch(err => console.log("home error:", err));
+      document.getElementById(zone + "Name").innerText = name;
+      document.getElementById(zone + "Value").innerText = moisture + " %";
+
+      const bar = document.getElementById(zone + "Bar");
+      setBarColor(bar, moisture);
+    });
+  } catch (err) {
+    console.log("home error:", err);
+  }
 }
 
 function openDetail(zone){
@@ -426,6 +562,8 @@ function backHome(){
 }
 
 function initChart(){
+  if (chartReady) return;
+
   const canvas = document.getElementById("chart");
   if (!canvas) return;
 
@@ -435,7 +573,7 @@ function initChart(){
     type: "line",
     data: {
       labels: [],
-    　datasets: [
+      datasets: [
         {
           label: "Moisture %",
           data: [],
@@ -462,6 +600,8 @@ function initChart(){
       }
     }
   });
+
+  chartReady = true;
 }
 
 function resetChart(){
@@ -473,200 +613,222 @@ function resetChart(){
   chart.update();
 }
 
-function loadDetail(){
-  const ZONE_URL = BASE + "/zones/" + currentZone + ".json";
+async function loadDetail(){
+  try {
+    const data = await dbGet("/zones/" + currentZone + ".json");
+    if (!data) return;
 
-  fetch(ZONE_URL)
-    .then(r => r.json())
-    .then(data => {
-      if (!data) return;
+    const sensor = data.sensor ?? {};
+    const calib = data.calibration ?? {};
+    const watering = data.watering ?? {};
 
-      const sensor = data.sensor ?? {};
-      const calib = data.calibration ?? {};
-      const watering = data.watering ?? {};
+    const zoneName = data.name ?? currentZone;
 
-      const zoneName = data.name ?? currentZone;
+    const moisture = Number(sensor.moisture ?? 0);
+    const raw = sensor.raw ?? "--";
+    const updatedAt = Number(sensor.updatedAt ?? 0);
 
-      const moisture = Number(sensor.moisture ?? 0);
-      const raw = sensor.raw ?? "--";
-      const updatedAt = Number(sensor.updatedAt ?? 0);
+    const auto = watering.auto ?? false;
+    const running = watering.running ?? false;
+    const threshold = Number(watering.threshold ?? 30);
 
-      const auto = watering.auto ?? false;
-      const running = watering.running ?? false;
+    document.getElementById("detailTitle").innerText = zoneName;
 
-      document.getElementById("detailTitle").innerText = zoneName;
+    document.getElementById("value").innerText = moisture + " %";
+    document.getElementById("raw").innerText = "現在の実測値：" + raw;
 
-      document.getElementById("value").innerText = moisture + " %";
-      document.getElementById("raw").innerText = "現在の実測値：" + raw;
+    const bar = document.getElementById("bar");
+    setBarColor(bar, moisture);
 
-      const bar = document.getElementById("bar");
-      setBarColor(bar, moisture);
+    const status = document.getElementById("status");
 
-      const status = document.getElementById("status");
+    if (moisture < 30) {
+      status.innerText = "状態：乾燥ぎみ";
+      status.style.color = "#dc2626";
+    } else if (moisture < 70) {
+      status.innerText = "状態：適正";
+      status.style.color = "#16a34a";
+    } else {
+      status.innerText = "状態：湿潤ぎみ";
+      status.style.color = "#2563eb";
+    }
 
-      if (moisture < 30) {
-        status.innerText = "状態：乾燥ぎみ";
-        status.style.color = "#dc2626";
-      } else if (moisture < 70) {
-        status.innerText = "状態：適正";
-        status.style.color = "#16a34a";
-      } else {
-        status.innerText = "状態：湿潤ぎみ";
-        status.style.color = "#2563eb";
-      }
+    const espStatus = document.getElementById("espStatus");
+    let espOnline = false;
 
-      const espStatus = document.getElementById("espStatus");
-      let espOnline = false;
+    if (updatedAt > 0) {
+      espOnline = Date.now() - updatedAt < 10000;
+    }
 
-      if (updatedAt > 0) {
-        espOnline = Date.now() - updatedAt < 10000;
-      }
+    if (espOnline) {
+      espStatus.innerText = "ESP：起動中";
+      espStatus.style.color = "#16a34a";
+    } else {
+      espStatus.innerText = "ESP：未接続";
+      espStatus.style.color = "#dc2626";
+    }
 
-      if (espOnline) {
-        espStatus.innerText = "ESP：起動中";
-        espStatus.style.color = "#16a34a";
-      } else {
-        espStatus.innerText = "ESP：未接続";
-        espStatus.style.color = "#dc2626";
-      }
+    document.getElementById("dry").innerText = calib.dry ?? "--";
+    document.getElementById("wet").innerText = calib.wet ?? "--";
 
-      document.getElementById("dry").innerText = calib.dry ?? "--";
-      document.getElementById("wet").innerText = calib.wet ?? "--";
+    document.getElementById("autoToggle").checked = auto;
 
-      document.getElementById("autoToggle").checked = auto;
+    const autoLabel = document.getElementById("autoLabel");
+    autoLabel.innerText = auto ? "ON" : "OFF";
+    autoLabel.style.color = auto ? "#16a34a" : "#dc2626";
 
-      const autoLabel = document.getElementById("autoLabel");
-      autoLabel.innerText = auto ? "ON" : "OFF";
-      autoLabel.style.color = auto ? "#16a34a" : "#dc2626";
+    const wateringStatus = document.getElementById("wateringStatus");
 
-      const wateringStatus = document.getElementById("wateringStatus");
+    if (running) {
+      wateringStatus.innerText = "💧 水やり中…";
+      wateringStatus.style.color = "#2563eb";
+    } else {
+      wateringStatus.innerText = "水やり：待機中";
+      wateringStatus.style.color = "#6b7280";
+    }
 
-      if (running) {
-        wateringStatus.innerText = "💧 水やり中…";
-        wateringStatus.style.color = "#2563eb";
-      } else {
-        wateringStatus.innerText = "水やり：待機中";
-        wateringStatus.style.color = "#6b7280";
-      }
+    const durationMs = watering.duration ?? 3000;
+    const durationSec = Math.floor(durationMs / 1000);
 
-      const durationMs = watering.duration ?? 3000;
-      const durationSec = Math.floor(durationMs / 1000);
+    document.getElementById("durationValue").innerText = durationSec;
+    document.getElementById("durationInput").value = durationSec;
 
-      document.getElementById("durationValue").innerText = durationSec;
-      document.getElementById("durationInput").value = durationSec;
+    document.getElementById("thresholdValue").innerText = threshold;
+    document.getElementById("thresholdInput").value = threshold;
 
-      document.getElementById("thresholdValue").innerText =
-        watering.threshold ?? "--";
-
-      document.getElementById("thresholdInput").value =
-        watering.threshold ?? 30;
-
-      if (espOnline && chart) {
-        const time = new Date().toLocaleTimeString();
-
-      const threshold = Number(watering.threshold ?? 30);
+    if (espOnline && chart) {
+      const time = new Date().toLocaleTimeString();
 
       chart.data.labels.push(time);
       chart.data.datasets[0].data.push(moisture);
       chart.data.datasets[1].data.push(threshold);
-      
+
       if (chart.data.labels.length > 30) {
         chart.data.labels.shift();
         chart.data.datasets[0].data.shift();
         chart.data.datasets[1].data.shift();
       }
 
-chart.update();
-
-        chart.update();
-      }
-    })
-    .catch(err => console.log("detail error:", err));
+      chart.update();
+    }
+  } catch (err) {
+    console.log("detail error:", err);
+  }
 }
 
-function sendMode(mode){
-  fetch(BASE + "/zones/" + currentZone + "/mode.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(mode)
-  });
+// ===== 操作 =====
+async function sendMode(mode){
+  try {
+    await dbPut("/zones/" + currentZone + "/mode.json", mode);
+  } catch (err) {
+    console.log("sendMode error:", err);
+  }
 }
 
-function toggleAutoSwitch(el){
+async function toggleAutoSwitch(el){
   const value = el.checked;
 
-  fetch(BASE + "/zones/" + currentZone + "/watering/auto.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(value)
-  });
+  try {
+    await dbPut("/zones/" + currentZone + "/watering/auto.json", value);
 
-  const autoLabel = document.getElementById("autoLabel");
-  autoLabel.innerText = value ? "ON" : "OFF";
-  autoLabel.style.color = value ? "#16a34a" : "#dc2626";
+    const autoLabel = document.getElementById("autoLabel");
+    autoLabel.innerText = value ? "ON" : "OFF";
+    autoLabel.style.color = value ? "#16a34a" : "#dc2626";
+  } catch (err) {
+    console.log("toggleAuto error:", err);
+    el.checked = !value;
+  }
 }
 
-function manualWatering(){
-  fetch(BASE + "/zones/" + currentZone + "/watering/manual.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(true)
-  });
+async function manualWatering(){
+  try {
+    await dbPut("/zones/" + currentZone + "/watering/manual.json", true);
+  } catch (err) {
+    console.log("manualWatering error:", err);
+  }
 }
 
 function updateThresholdLabel(value){
   document.getElementById("thresholdValue").innerText = value;
 }
 
-function saveThreshold(value){
-  fetch(BASE + "/zones/" + currentZone + "/watering/threshold.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: Number(value)
-  });
+async function saveThreshold(value){
+  try {
+    await dbPut("/zones/" + currentZone + "/watering/threshold.json", Number(value));
+  } catch (err) {
+    console.log("saveThreshold error:", err);
+    loadDetail();
+  }
 }
 
 function updateDurationLabel(value){
   document.getElementById("durationValue").innerText = value;
 }
 
-function saveDuration(value){
-  fetch(BASE + "/zones/" + currentZone + "/watering/duration.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: Number(value) * 1000
-  });
+async function saveDuration(value){
+  try {
+    await dbPut("/zones/" + currentZone + "/watering/duration.json", Number(value) * 1000);
+  } catch (err) {
+    console.log("saveDuration error:", err);
+    loadDetail();
+  }
 }
 
-function editZoneName(){
+async function editZoneName(){
   const currentName = document.getElementById("detailTitle").innerText;
   const newName = prompt("名前を入力してください", currentName);
 
   if (!newName) return;
 
-  fetch(BASE + "/zones/" + currentZone + "/name.json", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newName)
-  })
-  .then(() => {
+  try {
+    await dbPut("/zones/" + currentZone + "/name.json", newName);
     document.getElementById("detailTitle").innerText = newName;
     loadHome();
-  });
+  } catch (err) {
+    console.log("editName error:", err);
+  }
 }
 
-window.onload = () => {
-  initChart();
+// onclickから呼べるようにする
+window.openDetail = openDetail;
+window.backHome = backHome;
+window.sendMode = sendMode;
+window.toggleAutoSwitch = toggleAutoSwitch;
+window.manualWatering = manualWatering;
+window.updateThresholdLabel = updateThresholdLabel;
+window.saveThreshold = saveThreshold;
+window.updateDurationLabel = updateDurationLabel;
+window.saveDuration = saveDuration;
+window.editZoneName = editZoneName;
 
-  loadHome();
-  setInterval(loadHome, 3000);
+// ===== Auth状態監視 =====
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById("loginCard").style.display = "none";
+    document.getElementById("appArea").style.display = "block";
 
-  setInterval(() => {
-    if (document.getElementById("detail").style.display === "block") {
-      loadDetail();
-    }
-  }, 3000);
-};
+    initChart();
+    loadHome();
+
+    if (homeTimer) clearInterval(homeTimer);
+    if (detailTimer) clearInterval(detailTimer);
+
+    homeTimer = setInterval(loadHome, 3000);
+
+    detailTimer = setInterval(() => {
+      if (document.getElementById("detail").style.display === "block") {
+        loadDetail();
+      }
+    }, 3000);
+
+  } else {
+    document.getElementById("loginCard").style.display = "block";
+    document.getElementById("appArea").style.display = "none";
+
+    if (homeTimer) clearInterval(homeTimer);
+    if (detailTimer) clearInterval(detailTimer);
+  }
+});
 </script>
 
 </body>
