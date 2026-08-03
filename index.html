@@ -379,7 +379,7 @@
         >
 
         <div class="setting-line">
-          水やり時間：<strong><span id="durationValue">--</span>秒</strong>
+          水やり時間：<strong><span id="durationValue">--</span>分</strong>
         </div>
 
         <input
@@ -387,7 +387,7 @@
           type="range"
           min="1"
           max="10"
-          value="3"
+          value="1"
           oninput="updateDurationLabel(this.value)"
           onchange="saveDuration(this.value)"
         >
@@ -687,11 +687,11 @@ async function loadDetail(){
       wateringStatus.style.color = "#6b7280";
     }
 
-    const durationMs = watering.duration ?? 3000;
-    const durationSec = Math.floor(durationMs / 1000);
+    const durationMs = watering.duration ?? 60000;
+    const durationMin = Math.floor(durationMs / 60000);
 
-    document.getElementById("durationValue").innerText = durationSec;
-    document.getElementById("durationInput").value = durationSec;
+    document.getElementById("durationValue").innerText = durationMin;
+    document.getElementById("durationInput").value = durationMin;
 
     document.getElementById("thresholdValue").innerText = threshold;
     document.getElementById("thresholdInput").value = threshold;
@@ -767,7 +767,7 @@ function updateDurationLabel(value){
 
 async function saveDuration(value){
   try {
-    await dbPut("/zones/" + currentZone + "/watering/duration.json", Number(value) * 1000);
+    await dbPut("/zones/" + currentZone + "/watering/duration.json", Number(value) * 60000);
   } catch (err) {
     console.log("saveDuration error:", err);
     loadDetail();
