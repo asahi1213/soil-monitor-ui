@@ -553,15 +553,17 @@ async function loadHome(){
   }
 }
 
-function openDetail(zone){
+async function openDetail(zone){
+
   currentZone = zone;
 
   document.getElementById("home").style.display = "none";
   document.getElementById("detail").style.display = "block";
 
   resetChart();
-  loadDetail();
-  loadHistory();
+
+  await loadDetail();
+  await loadHistory();
 }
 
 function backHome(){
@@ -901,10 +903,13 @@ onAuthStateChanged(auth, user => {
 
     homeTimer = setInterval(loadHome, 3000);
 
-    detailTimer = setInterval(() => {
-      if (document.getElementById("detail").style.display === "block") {
-        loadDetail();
-      }
+    detailTimer = setInterval(async () => {
+
+      if (document.getElementById("detail").style.display !== "block") return;
+    
+      await loadDetail();
+      await loadHistory();
+    
     }, 3000);
 
   } else {
