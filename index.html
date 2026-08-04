@@ -347,6 +347,14 @@
       </div>
 
       <div class="card">
+        <h3>水やり履歴</h3>
+      
+        <div id="waterLogs">
+          読み込み中...
+        </div>
+      </div>
+
+      <div class="card">
         <h3>水やり設定</h3>
 
         <div id="wateringStatus" class="status">水やり：待機中</div>
@@ -618,6 +626,7 @@ async function loadDetail(){
     const data = await dbGet("/zones/" + currentZone + ".json");
     if (!data) return;
 
+    const logs = data.logs ?? {};
     const sensor = data.sensor ?? {};
     const calib = data.calibration ?? {};
     const watering = data.watering ?? {};
@@ -710,6 +719,46 @@ async function loadDetail(){
       }
 
       chart.update();
+    }
+
+    const logArea = document.getElementById("waterLogs");
+
+    const list = Object.entries(logs);
+    
+    // 新しい順
+    list.sort((a, b) => {
+      return (b[1].time ?? 0) - (a[1].time ?? 0);
+    });
+    
+    if (list.length === 0) {
+    
+      logArea.innerHTML = "履歴なし";
+    
+    } else {
+    
+      logArea.innerHTML = "";
+    
+      list.forEach(([key, log]) => {
+    
+        const date = new Date(Number(log.time));
+    
+        const div = document.createElement("div");
+    
+        div.style.padding = "10px";
+        div.style.borderBottom = "1px solid #eee";
+    
+        div.innerHTML =
+          "<strong>" +
+          date.toLocaleString() +
+          "</strong><br>" +
+          "💧 " + log.duration + "分　" +
+          log.before + "% → " +
+          log.after + "%";
+    
+        logArea.appendChild(div);
+    
+      });
+    
     }
   } catch (err) {
     console.log("detail error:", err);
