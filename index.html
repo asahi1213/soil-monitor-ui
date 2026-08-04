@@ -561,6 +561,7 @@ function openDetail(zone){
 
   resetChart();
   loadDetail();
+  loadHistory();
 }
 
 function backHome(){
@@ -619,6 +620,56 @@ function resetChart(){
   chart.data.datasets[0].data = [];
   chart.data.datasets[1].data = [];
   chart.update();
+}
+
+async function loadHistory(){
+
+  if(!chart) return;
+
+  try{
+
+    const history = await dbGet("/zones/" + currentZone + "/history.json");
+
+    chart.data.labels = [];
+    chart.data.datasets[0].data = [];
+    chart.data.datasets[1].data = [];
+
+    if(!history){
+      chart.update();
+      return;
+    }
+
+    const list = Object.values(history);
+
+    // 時間順に並べる
+    list.sort((a,b)=>a.time-b.time);
+
+    // 最新24件だけ
+    const latest = list.slice(-24);
+
+    // 閾値取得
+    const zone = await dbGet("/zones/" + currentZone + ".json");
+    const threshold = Number(zone?.watering?.threshold ?? 30);
+
+    latest.forEach(item=>{
+
+      const d = new Date(item.time);
+
+      const label =
+        d.getHours().toString().padStart(2,"0") + ":" +
+        d.getMinutes().toString().padStart(2,"0");
+
+      chart.data.labels.push(label);
+      chart.data.datasets[0].data.push(item.moisture);
+      chart.data.datasets[1].data.push(threshold);
+
+    });
+
+    chart.update();
+
+  }catch(err){
+    console.log(err);
+  }
 }
 
 async function loadDetail(){
@@ -705,21 +756,6 @@ async function loadDetail(){
     document.getElementById("thresholdValue").innerText = threshold;
     document.getElementById("thresholdInput").value = threshold;
 
-    if (espOnline && chart) {
-      const time = new Date().toLocaleTimeString();
-
-      chart.data.labels.push(time);
-      chart.data.datasets[0].data.push(moisture);
-      chart.data.datasets[1].data.push(threshold);
-
-      if (chart.data.labels.length > 30) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
-        chart.data.datasets[1].data.shift();
-      }
-
-      chart.update();
-    }
 
     const logArea = document.getElementById("waterLogs");
 
@@ -760,6 +796,7 @@ async function loadDetail(){
       });
     
     }
+    
   } catch (err) {
     console.log("detail error:", err);
   }
