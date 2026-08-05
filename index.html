@@ -419,12 +419,14 @@
 
         <div class="calib">
           <span>dry</span>
-          <strong id="dry">--</strong>
+          <input id="dryInput" type="number">
+          <button onclick="saveDry()">保存</button>
         </div>
-
+        
         <div class="calib">
           <span>wet</span>
-          <strong id="wet">--</strong>
+          <input id="wetInput" type="number">
+          <button onclick="saveWet()">保存</button>
         </div>
       </div>
     </div>
@@ -862,6 +864,26 @@ async function saveDuration(value){
   }
 }
 
+async function saveDry(){
+
+  const value = Number(document.getElementById("dryInput").value);
+
+  await dbPut(
+    "/zones/" + currentZone + "/calibration/dry.json",
+    value
+  );
+}
+
+async function saveWet(){
+
+  const value = Number(document.getElementById("wetInput").value);
+
+  await dbPut(
+    "/zones/" + currentZone + "/calibration/wet.json",
+    value
+  );
+}  
+
 async function editZoneName(){
   const currentName = document.getElementById("detailTitle").innerText;
   const newName = prompt("名前を入力してください", currentName);
@@ -887,6 +909,8 @@ window.updateThresholdLabel = updateThresholdLabel;
 window.saveThreshold = saveThreshold;
 window.updateDurationLabel = updateDurationLabel;
 window.saveDuration = saveDuration;
+window.saveDry = saveDry;
+window.saveWet = saveWet;  
 window.editZoneName = editZoneName;
 
 // ===== Auth状態監視 =====
