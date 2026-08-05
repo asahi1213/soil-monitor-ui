@@ -732,8 +732,8 @@ async function loadDetail(){
       espStatus.style.color = "#dc2626";
     }
 
-    document.getElementById("dry").innerText = calib.dry ?? "--";
-    document.getElementById("wet").innerText = calib.wet ?? "--";
+    document.getElementById("dryInput").value = calib.dry ?? "";
+    document.getElementById("wetInput").value = calib.wet ?? "";
 
     document.getElementById("autoToggle").checked = auto;
 
@@ -872,6 +872,8 @@ async function saveDry(){
     "/zones/" + currentZone + "/calibration/dry.json",
     value
   );
+
+  await loadDetail();
 }
 
 async function saveWet(){
@@ -882,6 +884,8 @@ async function saveWet(){
     "/zones/" + currentZone + "/calibration/wet.json",
     value
   );
+
+  await loadDetail();
 }  
 
 async function editZoneName(){
